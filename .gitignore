@@ -1,5 +1,10 @@
 # Compiled class file
 *.class
+.gradle/
+.idea/
+gradle/
+gradlew
+gradlew.bat
 
 # Log file
 *.log

@@ -14,3 +14,11 @@ services:
       - MYSQL_DATABASE=webflux
     volumes:
       - ~/docker/mysql:/var/lib/mysql
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
+    environment:
+      - ADMINER_DESIGN=mvt
+

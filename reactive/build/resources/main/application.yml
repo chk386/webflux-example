@@ -23,3 +23,7 @@ spring:
       validation-query: select 1
     username: webflux
     password: webflux
+server:
+  error:
+    whitelabel:
+      enabled: false

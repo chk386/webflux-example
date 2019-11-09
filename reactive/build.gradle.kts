@@ -1,20 +1,36 @@
+import com.adarshr.gradle.testlogger.theme.ThemeType
+
+val snippetsDir: String by extra("build/generated-snippets")
+
 plugins {
   java
   id("org.springframework.boot") version "2.2.0.RELEASE"
   id("io.spring.dependency-management") version "1.0.8.RELEASE"
   id("org.asciidoctor.convert") version "1.5.8"
+  id("com.adarshr.test-logger") version "1.7.0"
 }
 
 group = "com.nhn"
 version = "1.0-SNAPSHOT"
+
+buildscript {
+  repositories {
+    jcenter()
+  }
+
+  dependencies {
+    classpath(group = "com.epages", name = "restdocs-api-spec-gradle-plugin", version = "0.9.6")
+  }
+}
+
+apply(plugin = "com.epages.restdocs-api-spec")
+apply(from = "openapi3.gradle")
 
 repositories {
   mavenCentral()
   maven("https://repo.spring.io/milestone")
   maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
-
-val snippetsDir: String by extra("build/generated-snippets")
 
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -37,7 +53,9 @@ dependencies {
   testImplementation("org.springframework.boot.experimental:spring-boot-test-autoconfigure-r2dbc")
   testImplementation("io.projectreactor:reactor-test")
 //  testImplementation("org.springframework.kafka:spring-kafka-test")
-  testImplementation("org.springframework.restdocs:spring-restdocs-mockmvc")
+  testImplementation("org.springframework.restdocs:spring-restdocs-webtestclient")
+
+  testImplementation(group = "com.epages", name = "restdocs-api-spec-webtestclient", version = "0.9.5")
   implementation(group = "io.netty", name = "netty-codec-http", version = "4.1.43.Final")
 }
 
@@ -51,6 +69,14 @@ tasks {
   test {
     outputs.dir(snippetsDir)
     useJUnitPlatform()
+
+    testLogging {
+      showStackTraces = false
+    }
+  }
+
+  testlogger {
+    theme = ThemeType.PLAIN
   }
 
   asciidoctor {

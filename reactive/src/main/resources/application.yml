@@ -27,3 +27,11 @@ server:
   error:
     whitelabel:
       enabled: false
+
+logging:
+  level:
+    root: ERROR
+    org.springframework: DEBUG
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: OFF
+    com.nhn: DEBUG
+

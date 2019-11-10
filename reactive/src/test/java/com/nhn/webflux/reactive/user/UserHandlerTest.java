@@ -102,5 +102,4 @@ class UserHandlerTest {
             fieldWithPath("email").description("이메일").type(JsonFieldType.STRING),
             fieldWithPath("teamId").description("팀 ID").type(JsonFieldType.NUMBER)};
     }
-
 }

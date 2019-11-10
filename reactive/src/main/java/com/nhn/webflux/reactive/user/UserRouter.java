@@ -1,7 +1,10 @@
 package com.nhn.webflux.reactive.user;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.server.HandlerFilterFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -12,17 +15,22 @@ import java.util.List;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
-import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
 import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
-import static org.springframework.web.reactive.function.server.RequestPredicates.path;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 /**
+ * 시작전 : preference -> code style -> java -> chained method calls -> wrap always
+ *
  * <a href="https://www.youtube.com/watch?v=M3jNn3HMeWg">참고하세욤!</a>
  * https://shortstories.gitbook.io/studybook/spring-webflux
+ * 2가지 : RouterFunction (Webmvc requestMapping, filter) , HandlerFunction (request와 response 처리)
+ * filter는 before, filter, after : similar functionality by using @ControllerAdvice, ServletFilter
+ * route, nest, path, GET, RequestPredicate,  and, or, add(otherRoute)
+ *
  * @author haekyu cho
  */
 //RouterFunction 을 여러 개 등록하면 가장 먼저 일치하는 HandlerFunction 을 실행하므로 .path("/**") ,
@@ -31,6 +39,7 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Configuration
 public class UserRouter {
 
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final UserHandler userHandler;
 
     public UserRouter(UserHandler userHandler) {
@@ -39,16 +48,40 @@ public class UserRouter {
 
     @Bean
     public RouterFunction<ServerResponse> userRoute() {
-        return route().nest(path("/users"),
-                            nested -> nested.GET("/{id}", userHandler::getUser)
-                                            .POST("/", contentType(APPLICATION_JSON), userHandler::createUser)
-            //                                            .POST("/", accept(APPLICATION_JSON), handler::createPerson)
-                            //                                            .DELETE("/{id}",
-                            //                                                    headers(v -> v.header("appKey")
-                            //                                                                  .contains("webflux")),
-                            //                                                    userHandler::getUser)
+        return route().path("/users",
+                            b1 -> b1.GET("/{id}", userHandler::getUser)
+                                    .nest(contentType(APPLICATION_JSON),
+                                          b2 -> b2.POST("/", userHandler::createUser))
+//                                                  .PUT("/", userHandler::createUser))
+//                                    .before(request -> {
+//                                        log.debug("before!!");
+//
+//                                        return ServerRequest.from(request)
+//                                                            .header("token", "webfluxToken")
+//                                                            .build();
+//                                    })
+                                    .filter(clientFilterFunction())
+                                    .after((request, response) -> {
+                                        log.debug("after!!");
+
+                                        return response;
+                                    })
         )
                       .build();
+    }
+
+    private HandlerFilterFunction<ServerResponse, ServerResponse> clientFilterFunction() {
+        // @formatter:off
+        return (request, next) -> {
+            log.debug("filter!!");
+
+            return request.headers()
+                          .header("clientId")
+                          .stream()
+                          .findFirst()
+                          .isPresent() ? next.handle(request) : ServerResponse.status(UNAUTHORIZED)
+                                                                              .bodyValue("clientId는 필수입니다.");
+        };
     }
 
     public static class PersonHandler {

@@ -23,6 +23,8 @@ spring:
       validation-query: select 1
     username: webflux
     password: webflux
+  http:
+    log-request-details: true
 server:
   error:
     whitelabel:
@@ -31,7 +33,15 @@ server:
 logging:
   level:
     root: ERROR
-    org.springframework: DEBUG
-    org.springframework.beans.factory.support.DefaultListableBeanFactory: OFF
     com.nhn: DEBUG
+    org.springframework: ERROR
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: ERROR
+#    org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
+    # log routingFunctionMapping
+#    org.springframework.web.reactive.function: TRACE
+    reactor.Mono: DEBUG
+    reactor.Flux: DEBUG
+    web: TRACE
+
+
 

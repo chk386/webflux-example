@@ -35,13 +35,14 @@ logging:
     root: ERROR
     com.nhn: DEBUG
     org.springframework: ERROR
-    org.springframework.beans.factory.support.DefaultListableBeanFactory: ERROR
+#    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: TRACE
 #    org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
     # log routingFunctionMapping
 #    org.springframework.web.reactive.function: TRACE
     reactor.Mono: DEBUG
     reactor.Flux: DEBUG
-    web: TRACE
+    web: ERROR
 
 
 

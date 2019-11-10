@@ -56,7 +56,7 @@ public class UserHandler {
 
     Mono<ServerResponse> createUser(ServerRequest request) {
         return request.bodyToMono(User.class)
-                      .doOnSubscribe(v -> logger.debug("doOnSubScribe"))
+                      .doOnSubscribe(v -> logger.debug("doOnSubScribe 실행"))
                       .doOnNext(user -> logger.debug("created a user : {}", user))
                       .doOnNext(user -> {
                           if (user.getId() != 0) {

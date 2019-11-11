@@ -52,8 +52,8 @@ public class UserRouter {
     public RouterFunction<ServerResponse> userRoute() {
         return route().path("/users",
                             b1 -> b1.GET("/{id}", userHandler::getUser)
-                                    .nest(contentType(APPLICATION_JSON), b2 -> b2.POST("/", userHandler::createUser)
-                                    .POST("/", contentType(MULTIPART_FORM_DATA), userHandler::bulkUsers))
+                                    .POST("/bulk", contentType(MULTIPART_FORM_DATA), userHandler::bulkUsers)
+                                    .nest(contentType(APPLICATION_JSON), b2 -> b2.POST("/", userHandler::createUser))
                                     //                                                  .PUT("/", userHandler::createUser))
                                     //                                    .before(request -> {
                                     //        e

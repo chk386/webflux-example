@@ -16,6 +16,7 @@ import org.springframework.web.server.ServerWebInputException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 /**
@@ -45,8 +47,8 @@ public class UserHandler {
                                         .header("clientId");
 
         String clientId = clientIds.isEmpty() ? "" : clientIds.get(0);
-
         logger.debug("clientId : {}, id : {}, name : {}", clientId, id, name);
+
 
         return ServerResponse.ok()
                              .contentType(APPLICATION_JSON)
@@ -89,15 +91,24 @@ public class UserHandler {
 
                           logger.info("uploaded file name : {}", file.name());
 
+                          // todo: 한줄씩 읽어서?
                           Flux<String> flux = Flux.create(fluxSink -> file.content()
-                                                                          .doOnNext(buf -> logger.info(getMsg(buf)))
-                                                                          .doFinally(type -> logger.info(
-                                                                              "final signal type : {}",
-                                                                              type.toString()))
-                                                                          .subscribe(buf -> fluxSink.next(getMsg(buf))));
+                                                                          .doOnNext(buf -> logger.info("doOnNext" + getMsg(buf)))
+                                                                          .doOnComplete(() -> {
+                                                                              logger.info("doOnComplete");
+                                                                              fluxSink.complete();
+                                                                          })
+                                                                          .doFinally(type -> {
+                                                                              logger.info(
+                                                                                  "final signal type : {}",
+                                                                                  type.toString());
+                                                                          })
+                                                                          .subscribe(buf -> {
+                                                                              fluxSink.next(buf.toString(Charset.defaultCharset()));
+                                                                          }));
 
                           return ServerResponse.ok()
-                                               .contentType(TEXT_PLAIN)
+                                               .contentType(TEXT_EVENT_STREAM)
                                                .body(flux, String.class);
                       });
     }

@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -50,28 +51,26 @@ public class UserRouter {
     public RouterFunction<ServerResponse> userRoute() {
         return route().path("/users",
                             b1 -> b1.GET("/{id}", userHandler::getUser)
-                                    .nest(contentType(APPLICATION_JSON),
-                                          b2 -> b2.POST("/", userHandler::createUser))
-//                                                  .PUT("/", userHandler::createUser))
-//                                    .before(request -> {
-//                                        log.debug("before!!");
-//
-//                                        return ServerRequest.from(request)
-//                                                            .header("token", "webfluxToken")
-//                                                            .build();
-//                                    })
+                                    .nest(contentType(APPLICATION_JSON), b2 -> b2.POST("/", userHandler::createUser))
+                                    //                                                  .PUT("/", userHandler::createUser))
+                                    //                                    .before(request -> {
+                                    //        e
+                                    //        log.debug("before!!");
+                                    //
+                                    //                                        return ServerRequest.from(request)
+                                    //                                                            .header("token", "webfluxToken")
+                                    //                                                            .build();
+                                    //                                    })
                                     .filter(clientFilterFunction())
                                     .after((request, response) -> {
                                         log.debug("after!!");
 
                                         return response;
-                                    })
-        )
+                                    }))
                       .build();
     }
 
     private HandlerFilterFunction<ServerResponse, ServerResponse> clientFilterFunction() {
-        // @formatter:off
         return (request, next) -> {
             log.debug("filter!!");
 

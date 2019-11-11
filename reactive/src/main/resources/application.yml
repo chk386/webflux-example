@@ -25,10 +25,12 @@ spring:
     password: webflux
   http:
     log-request-details: true
+
 server:
   error:
     whitelabel:
       enabled: false
+  port: 8080
 
 logging:
   level:
@@ -42,7 +44,6 @@ logging:
 #    org.springframework.web.reactive.function: TRACE
     reactor.Mono: DEBUG
     reactor.Flux: DEBUG
-    web: ERROR
-
+    web: DEBUG
 
 

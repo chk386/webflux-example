@@ -1,29 +1,16 @@
 package com.nhn.webflux.reactive.user;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.reactivestreams.Processor;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
-import org.springframework.validation.Validator;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebInputException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Flow;
 
 import reactor.core.publisher.Mono;
 
@@ -51,7 +38,9 @@ public class UserHandler {
 
         return ServerResponse.ok()
                              .contentType(APPLICATION_JSON)
-                             .bodyValue(new User(Long.parseLong(id), name, name + "@nhn.com", 0));
+                             .bodyValue(new User(Long.parseLong(id), name, name + "@nhn.com", 0))
+                             .switchIfEmpty(ServerResponse.noContent()
+                                                          .build());
     }
 
     Mono<ServerResponse> createUser(ServerRequest request) {
@@ -63,14 +52,15 @@ public class UserHandler {
                               throw new ServerWebInputException("유저 등록시 id는 0이여야 합니다.");
                           }
                       })
-                      .doOnError(e -> logger.error("유저 똑바로 넣어주세요!"))
+                      .doOnError(e -> logger.error("유저를 저장하는 도중 오류가 발생하였습니다.", e))
                       .flatMap(user -> Mono.just(new User(9999, user.getName(), user.getEmail(), 0)))
                       .log()
                       .flatMap(user -> {
+                          final Map<String, Object> uriVariables = Map.of("id", user.getId(), "name", user.getName());
                           URI uri = UriComponentsBuilder.newInstance()
                                                         .path("/users/{id}?name={name}")
                                                         .encode()
-                                                        .buildAndExpand(Map.of("id", user.getId(), "name", user.getName()))
+                                                        .buildAndExpand(uriVariables)
                                                         .toUri();
 
                           return ServerResponse.created(uri)

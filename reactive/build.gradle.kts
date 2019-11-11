@@ -57,6 +57,7 @@ dependencies {
 
   testImplementation(group = "com.epages", name = "restdocs-api-spec-webtestclient", version = "0.9.5")
   implementation(group = "io.netty", name = "netty-codec-http", version = "4.1.43.Final")
+  implementation(group = "io.projectreactor.netty", name = "reactor-netty", version = "0.9.0.RELEASE")
 }
 
 dependencyManagement {

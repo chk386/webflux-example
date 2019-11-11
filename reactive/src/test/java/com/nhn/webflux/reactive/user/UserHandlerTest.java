@@ -37,13 +37,15 @@ class UserHandlerTest {
     private WebTestClient webTestClient;
     private ResourceSnippetParametersBuilder builder = ResourceSnippetParameters.builder();
 
+    private static final String CLIENT_ID = "clientId";
+
     @Test
     @DisplayName("유저를 조회한다.")
     void getUser() {
         // @formatter:off
         webTestClient.get()
                      .uri("/users/{id}?name={name}", "1", "haekyu.cho")
-                     .header("clientId", "webflux")
+                     .header(CLIENT_ID, "webflux")
                      .exchange()
                      .expectStatus().isOk()
                      .expectHeader().contentType(APPLICATION_JSON)
@@ -52,7 +54,7 @@ class UserHandlerTest {
                         document("get-user",
                           resource(builder.tag("[User]")
                                           .description("유저 조회한다.")
-                                          .requestHeaders(headerWithName("clientId").description("클라이언트 ID").optional())
+                                          .requestHeaders(headerWithName(CLIENT_ID).description("클라이언트 ID").optional())
                                           .pathParameters(parameterWithName("id").description("조회할 유저 ID"))
                                           .requestParameters(parameterWithName("name").description("조회할 유저 이름").optional())
                                           .responseHeaders(headerWithName(CONTENT_TYPE).description(APPLICATION_JSON_VALUE))
@@ -70,7 +72,7 @@ class UserHandlerTest {
         webTestClient.post()
                      .uri("/users")
                      .accept(APPLICATION_JSON)
-                     .header("clientId", "webflux")
+                     .header(CLIENT_ID, "webflux")
                      .bodyValue(user)
                      .exchange()
                      .expectStatus().isCreated()
@@ -83,7 +85,7 @@ class UserHandlerTest {
                                          .description("유저를 등록한다.")
                                          .requestHeaders(
                                              headerWithName(CONTENT_TYPE).description(APPLICATION_JSON_VALUE),
-                                             headerWithName("clientId").description("클라이언트 ID").optional()
+                                             headerWithName(CLIENT_ID).description("클라이언트 ID").optional()
                                          )
                                          .requestFields(userField())
                                          .responseHeaders(

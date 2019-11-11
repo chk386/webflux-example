@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
@@ -51,7 +52,8 @@ public class UserRouter {
     public RouterFunction<ServerResponse> userRoute() {
         return route().path("/users",
                             b1 -> b1.GET("/{id}", userHandler::getUser)
-                                    .nest(contentType(APPLICATION_JSON), b2 -> b2.POST("/", userHandler::createUser))
+                                    .nest(contentType(APPLICATION_JSON), b2 -> b2.POST("/", userHandler::createUser)
+                                    .POST("/", contentType(MULTIPART_FORM_DATA), userHandler::bulkUsers))
                                     //                                                  .PUT("/", userHandler::createUser))
                                     //                                    .before(request -> {
                                     //        e

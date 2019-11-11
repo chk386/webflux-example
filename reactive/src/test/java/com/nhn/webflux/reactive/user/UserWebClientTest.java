@@ -1,16 +1,11 @@
 package com.nhn.webflux.reactive.user;
 
-import com.nhn.webflux.configuration.WebClientConfiguration;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestConstructor;
-import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.server.ServerWebInputException;
 
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 /**
@@ -26,37 +21,40 @@ class UserWebClientTest {
         this.userWebClient = userWebClient;
     }
 
-    @Test
-    @DisplayName("webclient조회 테스트")
-    void getUserByWebClient() {
-        final long id = 10;
-        final String name = "harden";
-        final Mono<User> userMono = userWebClient.getUser(id, name);
+    private final long id = 10;
+    private final String name = "harden";
+    private final String baseUrl = "http://localhost:8080";
 
-        StepVerifier.create(userMono)
+    @Test
+    @DisplayName("webclient : create, retrieve를 이용한 webclient 테스트")
+    void getUserByWebClient_create_retrieve() {
+        StepVerifier.create(userWebClient.getUserByRetrieve(baseUrl, id, name))
                     .thenConsumeWhile(user -> name.concat("@nhn.com")
                                                   .equals(user.getEmail()))
                     .verifyComplete();
-
-        //        WebTestClient.bindToServer()
-        //                     .baseUrl("http://localhost:8080")
-        //                     .build()
-        //                     .get()
-        //                     .uri("/usesrs/{id}?name={name}", 10, "harden")
-        //                     .exchange()
-        //                     .expectStatus()
-        //                     .is2xxSuccessful()
-        //                     .expectHeader()
-        //                     .contentType(APPLICATION_JSON)
-        //                     .expectBody(User.class)
-        //                     .consumeWith(result -> {
-        //                         final User user = result.getResponseBody();
-        //                         assert user != null;
-        //                         assertThat("harden의 이름은 harden@nhn.com이여야 한다.",
-        //                                    user.getEmail(),
-        //                                    Matchers.equalTo("harden@nhn.com"));
-        //                     });
-
     }
 
+    @Test
+    @DisplayName("webclient : create, retrieve를 이용한 webclient 테스트2")
+    void getUserByWebClient_create_retrieve2() {
+        StepVerifier.create(userWebClient.getUserByRetrieve("http://localhost:9999", id, name))
+                    .verifyError(ServerWebInputException.class);
+    }
+
+    @Test
+    @DisplayName("webclient : builder, exchange를 이용한 webclient 테스트")
+    void getUserByWebClient_builder_exchange() {
+        StepVerifier.create(userWebClient.getUserByExchange(baseUrl, id, name))
+                    .thenConsumeWhile(user -> name.concat("@nhn.com")
+                                                  .equals(user.getEmail()))
+                    .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("webclient : 유저 등록")
+    void createUserTest() {
+        StepVerifier.create(userWebClient.createUserByRetrieve(baseUrl, "davis"))
+                    .thenConsumeWhile(user -> user.getId() == 9999)
+                    .verifyComplete();
+    }
 }

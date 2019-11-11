@@ -74,6 +74,8 @@ tasks {
     testLogging {
       showStackTraces = false
     }
+
+    jvmArgs = listOf("--enable-preview")
   }
 
   testlogger {
@@ -85,6 +87,15 @@ tasks {
   }
 }
 
+tasks.withType(JavaCompile::class.java) {
+  options.compilerArgs.add("--enable-preview")
+}
+
 configure<JavaPluginConvention> {
   sourceCompatibility = JavaVersion.VERSION_11
+}
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_12
+  targetCompatibility = JavaVersion.VERSION_12
 }

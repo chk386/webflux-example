@@ -2,19 +2,31 @@ package com.nhn.webflux.reactive.user;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import org.springframework.core.io.buffer.NettyDataBufferFactory;
+import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyExtractors;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebInputException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
+import io.netty.buffer.ByteBufAllocator;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 /**
  * @author haekyu cho
@@ -67,5 +79,31 @@ public class UserHandler {
                                                .contentType(APPLICATION_JSON)
                                                .bodyValue(user);
                       });
+    }
+
+    Mono<ServerResponse> bulkUsers(ServerRequest request) {
+        return request.body(BodyExtractors.toMultipartData())
+                      .flatMap(parts -> {
+                          Map<String, Part> map = parts.toSingleValueMap();
+                          Part file = map.get("files");
+
+                          logger.info("uploaded file name : {}", file.name());
+
+                          Flux<String> flux = Flux.create(fluxSink -> file.content()
+                                                                          .doOnNext(buf -> logger.info(getMsg(buf)))
+                                                                          .doFinally(type -> logger.info(
+                                                                              "final signal type : {}",
+                                                                              type.toString()))
+                                                                          .subscribe(buf -> fluxSink.next(getMsg(buf))));
+
+                          return ServerResponse.ok()
+                                               .contentType(TEXT_PLAIN)
+                                               .body(flux, String.class);
+                      });
+    }
+
+    private String getMsg(DataBuffer buf) {
+        return StandardCharsets.UTF_8.decode(buf.asByteBuffer())
+                                     .toString();
     }
 }

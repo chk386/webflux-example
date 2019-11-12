@@ -34,7 +34,7 @@ server:
 
 logging:
   level:
-    root: ERROR
+    root: WARN
     com.nhn: DEBUG
     org.springframework: ERROR
 #    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG

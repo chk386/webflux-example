@@ -1,27 +1,27 @@
-package com.nhn.webflux.reactive.user;
+package com.nhn.webflux.reactive.user.request;
 
-public class User {
+public class UserRequest {
 
     private long id;
     private String name;
     private String email;
     private int teamId;
 
-    public User(String name, String email) {
+    public UserRequest(String name, String email) {
         this.id = 0;
         this.name = name;
         this.email = email;
         this.teamId = 0;
     }
 
-    User(long id, String name, String email, int teamId) {
+    public UserRequest(long id, String name, String email, int teamId) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.teamId = teamId;
     }
 
-    public User() {}
+    public UserRequest() {}
 
     public void setId(long id) {
         this.id = id;

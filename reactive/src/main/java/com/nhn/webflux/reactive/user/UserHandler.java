@@ -1,15 +1,12 @@
 package com.nhn.webflux.reactive.user;
 
+import com.nhn.webflux.reactive.user.request.UserRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyExtractors;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebInputException;
@@ -17,104 +14,105 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import io.netty.buffer.ByteBufAllocator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
-import static org.springframework.http.MediaType.TEXT_PLAIN;
 
 /**
  * @author haekyu cho
  */
-
 @Component
 public class UserHandler {
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+  private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    Mono<ServerResponse> getUser(ServerRequest request) {
-        String id = request.pathVariable("id");
-        String name = request.queryParam("name")
-                             .orElse("");
-        List<String> clientIds = request.headers()
-                                        .header("clientId");
+  Mono<ServerResponse> getUser(ServerRequest request) {
+    String id = request.pathVariable("id");
+    String name = request.queryParam("name")
+                         .orElse("");
+    List<String> clientIds = request.headers()
+                                    .header("clientId");
 
-        String clientId = clientIds.isEmpty() ? "" : clientIds.get(0);
-        logger.debug("clientId : {}, id : {}, name : {}", clientId, id, name);
+    String clientId = clientIds.isEmpty() ? "" : clientIds.get(0);
+    logger.debug("clientId : {}, id : {}, name : {}", clientId, id, name);
 
+    return ServerResponse.ok()
+                         .contentType(APPLICATION_JSON)
+                         .bodyValue(new UserRequest(Long.parseLong(id), name, name + "@nhn.com", 0))
+                         .switchIfEmpty(ServerResponse.noContent()
+                                                      .build());
+  }
 
-        return ServerResponse.ok()
-                             .contentType(APPLICATION_JSON)
-                             .bodyValue(new User(Long.parseLong(id), name, name + "@nhn.com", 0))
-                             .switchIfEmpty(ServerResponse.noContent()
-                                                          .build());
-    }
+  Mono<ServerResponse> createUser(ServerRequest request) {
+    return request.bodyToMono(UserRequest.class)
+                  .doOnSubscribe(v -> logger.debug("doOnSubScribe 실행"))
+                  .doOnNext(user -> logger.debug("created a user : {}", user))
+                  .doOnNext(user -> {
+                    if (user.getId() != 0) {
+                      throw new ServerWebInputException("유저 등록시 id는 0이여야 합니다.");
+                    }
+                  })
+                  .doOnError(e -> logger.error("유저를 저장하는 도중 오류가 발생하였습니다.", e))
+                  .flatMap(user -> Mono.just(new UserRequest(9999, user.getName(), user.getEmail(), 0)))
+                  .log()
+                  .flatMap(user -> {
+                    final var uriVariables = Map.of("id", user.getId(), "name", user.getName());
+                    URI uri = UriComponentsBuilder.newInstance()
+                                                  .path("/users/{id}?name={name}")
+                                                  .encode()
+                                                  .buildAndExpand(uriVariables)
+                                                  .toUri();
 
-    Mono<ServerResponse> createUser(ServerRequest request) {
-        return request.bodyToMono(User.class)
-                      .doOnSubscribe(v -> logger.debug("doOnSubScribe 실행"))
-                      .doOnNext(user -> logger.debug("created a user : {}", user))
-                      .doOnNext(user -> {
-                          if (user.getId() != 0) {
-                              throw new ServerWebInputException("유저 등록시 id는 0이여야 합니다.");
-                          }
-                      })
-                      .doOnError(e -> logger.error("유저를 저장하는 도중 오류가 발생하였습니다.", e))
-                      .flatMap(user -> Mono.just(new User(9999, user.getName(), user.getEmail(), 0)))
-                      .log()
-                      .flatMap(user -> {
-                          final Map<String, Object> uriVariables = Map.of("id", user.getId(), "name", user.getName());
-                          URI uri = UriComponentsBuilder.newInstance()
-                                                        .path("/users/{id}?name={name}")
-                                                        .encode()
-                                                        .buildAndExpand(uriVariables)
-                                                        .toUri();
+                    return ServerResponse.created(uri)
+                                         .contentType(APPLICATION_JSON)
+                                         .bodyValue(user);
+                  });
+  }
 
-                          return ServerResponse.created(uri)
-                                               .contentType(APPLICATION_JSON)
-                                               .bodyValue(user);
-                      });
-    }
+  Mono<ServerResponse> modifyUser(ServerRequest request) {
+    return request.bodyToMono(UserRequest.class)
+                  .flatMap(user -> ServerResponse.noContent()
+                                                 .build());
+  }
 
-    Mono<ServerResponse> bulkUsers(ServerRequest request) {
-        return request.body(BodyExtractors.toMultipartData())
-                      .flatMap(parts -> {
-                          Map<String, Part> map = parts.toSingleValueMap();
-                          Part file = map.get("files");
+  Mono<ServerResponse> bulkUsers(ServerRequest req) {
+    return req.body(BodyExtractors.toMultipartData())
+              .flatMap(parts -> {
+                Map<String, Part> map = parts.toSingleValueMap();
+                Part file = map.get("sample.txt");
 
-                          logger.info("uploaded file name : {}", file.name());
+                logger.info("uploaded id : {}", file.name());
 
-                          // todo: 한줄씩 읽어서?
-                          Flux<String> flux = Flux.create(fluxSink -> file.content()
-                                                                          .doOnNext(buf -> logger.info("doOnNext" + getMsg(buf)))
-                                                                          .doOnComplete(() -> {
-                                                                              logger.info("doOnComplete");
-                                                                              fluxSink.complete();
-                                                                          })
-                                                                          .doFinally(type -> {
-                                                                              logger.info(
-                                                                                  "final signal type : {}",
-                                                                                  type.toString());
-                                                                          })
-                                                                          .subscribe(buf -> {
-                                                                              fluxSink.next(buf.toString(Charset.defaultCharset()));
-                                                                          }));
+                AtomicInteger atomicInteger = new AtomicInteger(0);
 
-                          return ServerResponse.ok()
-                                               .contentType(TEXT_EVENT_STREAM)
-                                               .body(flux, String.class);
-                      });
-    }
+                var flux = Flux.create(sink -> file.content()
+                                                   .doFinally(type -> sink.complete())
+                                                   .subscribe(buf -> {
+                                                     String received = buf.toString(Charset.defaultCharset());
+                                                     Arrays.stream(received.split("\n"))
+                                                           .forEach(sink::next);
+                                                   }))
+//                               .buffer(10)
+//                               .delayElements(Duration.ofSeconds(1))
+//                               .flatMap(v -> Flux.fromStream(v.stream()
+//                                                              .map(text -> (String)text)
+//                                                              .map(String::toUpperCase)
+//                                                              .map(text -> text.replace("-", "*"))
+//                                                              .map(text -> atomicInteger.incrementAndGet() + " line -> "
+//                                                                           + text + " (" + text.length() + ") Bytes")))
+                               .doOnNext(text -> logger.debug("client 송신\n{}", text));
 
-    private String getMsg(DataBuffer buf) {
-        return StandardCharsets.UTF_8.decode(buf.asByteBuffer())
-                                     .toString();
-    }
+                return ServerResponse.ok()
+                                     .contentType(TEXT_EVENT_STREAM)
+                                     .body(flux, String.class);
+              });
+  }
 }

@@ -1,5 +1,7 @@
 package com.nhn.webflux.reactive.user;
 
+import com.nhn.webflux.reactive.user.request.UserRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -25,7 +27,7 @@ public class UserWebClient {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public Mono<User> getUserByRetrieve(String baseUrl, long id, String name) {
+    public Mono<UserRequest> getUserByRetrieve(String baseUrl, long id, String name) {
         return WebClient.create(baseUrl)
                         .get()
                         .uri("/users/{id}?name={name}", id, name)
@@ -40,10 +42,10 @@ public class UserWebClient {
                             logger.error("4xx 에러발생");
                             return Mono.error(new ServerWebInputException("클라이언트 호출 오류"));
                         })
-                        .bodyToMono(User.class);
+                        .bodyToMono(UserRequest.class);
     }
 
-    public Mono<User> getUserByExchange(String baseUrl, long id, String name) {
+    public Mono<UserRequest> getUserByExchange(String baseUrl, long id, String name) {
         return WebClient.builder()
                         .filter((request, next) -> next.exchange(ClientRequest.from(request)
                                                                               .header("foo", "bar")
@@ -66,7 +68,7 @@ public class UserWebClient {
                             logger.info("응답 코드 : {}", httpStatus.getReasonPhrase());
 
                             return switch (httpStatus) {
-                                case OK, CREATED, NO_CONTENT -> response.bodyToMono(User.class);
+                                case OK, CREATED, NO_CONTENT -> response.bodyToMono(UserRequest.class);
                                 case BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND -> Mono.error(new ServerWebInputException(
                                     "클라이언트 오류 발생"));
                                 case SERVICE_UNAVAILABLE, INTERNAL_SERVER_ERROR -> Mono.error(new ServerErrorException(
@@ -77,15 +79,15 @@ public class UserWebClient {
                         });
     }
 
-    public Mono<User> createUserByRetrieve(String baseUrl, String name) {
+    public Mono<UserRequest> createUserByRetrieve(String baseUrl, String name) {
         return WebClient.create(baseUrl)
                         .post()
                         .uri("/users")
                         .contentType(APPLICATION_JSON)
                         .header("clientId", "webflux")
-                        .bodyValue(new User(name, name.concat("@nhn.com")))
+                        .bodyValue(new UserRequest(name, name.concat("@nhn.com")))
                         .retrieve()
-                        .bodyToMono(User.class);
+                        .bodyToMono(UserRequest.class);
 
     }
 }

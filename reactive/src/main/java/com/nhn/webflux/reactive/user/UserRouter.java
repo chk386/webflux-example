@@ -11,21 +11,20 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
+import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 /**
- * 시작전 : preference -> code style -> java -> chained method calls -> wrap always
+ * 시작전 : preference -> code style -> java -> Wrapping and braces -> chained method calls -> wrap always
  *
  * <a href="https://www.youtube.com/watch?v=M3jNn3HMeWg">참고하세욤!</a>
  * https://shortstories.gitbook.io/studybook/spring-webflux
@@ -41,93 +40,88 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Configuration
 public class UserRouter {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-    private final UserHandler userHandler;
+  private final Logger log = LoggerFactory.getLogger(this.getClass());
+  private final UserHandler userHandler;
 
-    public UserRouter(UserHandler userHandler) {
-        this.userHandler = userHandler;
+  public UserRouter(UserHandler userHandler) {
+    this.userHandler = userHandler;
+  }
+
+  @Bean
+  public RouterFunction<ServerResponse> userRoute() {
+    return route().path("/users",
+                        b1 -> b1.GET("/{id}", userHandler::getUser)
+                                .nest(contentType(APPLICATION_JSON),
+                                      b2 -> b2.POST("/", userHandler::createUser)
+                                              .PUT("/", userHandler::modifyUser))
+                                .POST("/bulk", contentType(MULTIPART_FORM_DATA), userHandler::bulkUsers))
+                  //                  .before(request -> ServerRequest.from(request)
+                  //                                                  .header("token", "webfluxToken")
+                  //                                                  .build())
+                  //                  .filter(clientFilterFunction())
+                  //                  .after((request, response) -> response)
+                  .build();
+  }
+
+  private HandlerFilterFunction<ServerResponse, ServerResponse> clientFilterFunction() {
+    return (request, next) -> {
+      boolean present = request.headers()
+                               .header("clientId")
+                               .stream()
+                               .findAny()
+                               .isPresent();
+
+      if (!present) {
+        log.warn("헤더 clientId를 넣어주세요.");
+      }
+
+      return next.handle(request);
+    };
+  }
+
+  public static class PersonHandler {
+    // ...
+
+    public Mono<ServerResponse> listPeople(ServerRequest request) {
+      String id = request.pathVariable("id");
+
+      return ServerResponse.ok()
+                           .contentType(TEXT_PLAIN)
+                           .bodyValue(id);
     }
 
-    @Bean
-    public RouterFunction<ServerResponse> userRoute() {
-        return route().path("/users",
-                            b1 -> b1.GET("/{id}", userHandler::getUser)
-                                    .POST("/bulk", contentType(MULTIPART_FORM_DATA), userHandler::bulkUsers)
-                                    .nest(contentType(APPLICATION_JSON), b2 -> b2.POST("/", userHandler::createUser))
-                                    //                                                  .PUT("/", userHandler::createUser))
-                                    //                                    .before(request -> {
-                                    //        e
-                                    //        log.debug("before!!");
-                                    //
-                                    //                                        return ServerRequest.from(request)
-                                    //                                                            .header("token", "webfluxToken")
-                                    //                                                            .build();
-                                    //                                    })
-                                    .filter(clientFilterFunction())
-                                    .after((request, response) -> {
-                                        log.debug("after!!");
-
-                                        return response;
-                                    }))
-                      .build();
+    public Mono<ServerResponse> createPerson(ServerRequest request) {
+      return null;
     }
 
-    private HandlerFilterFunction<ServerResponse, ServerResponse> clientFilterFunction() {
-        return (request, next) -> {
-            log.debug("filter!!");
+    public Mono<ServerResponse> stream(ServerRequest request) {
+      Flux<Integer> original = Flux.just(1, 2, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10);
 
-            return request.headers()
-                          .header("clientId")
-                          .stream()
-                          .findFirst()
-                          .isPresent() ? next.handle(request) : ServerResponse.status(UNAUTHORIZED)
-                                                                              .bodyValue("clientId는 필수입니다.");
-        };
+      Flux<String> flux1 = original.delayElements(Duration.ofMillis(500))
+                                   //                                         .distinct()
+                                   .groupBy(v -> v)
+                                   .concatMap(Flux::count)
+                                   .map(v -> "A : " + v);
+
+      Flux<List<String>> bufferdFlux1 = flux1.bufferTimeout(3, Duration.ofMillis(1000));
+
+      Flux<String> flux2 = Flux.range(1, 10)
+                               .delayElements(Duration.ofMillis(500))
+                               .map(v -> "B : " + v);
+
+      Flux<String> merged = Flux.merge(flux1, flux2);
+
+      return ServerResponse.ok()
+                           .contentType(TEXT_EVENT_STREAM)
+                           .body(flux1.log(), List.class);
     }
 
-    public static class PersonHandler {
-        // ...
+    public Mono<ServerResponse> getPerson(ServerRequest request) {
+      String id = request.pathVariable("id");
 
-        public Mono<ServerResponse> listPeople(ServerRequest request) {
-            String id = request.pathVariable("id");
-
-            return ServerResponse.ok()
-                                 .contentType(TEXT_PLAIN)
-                                 .bodyValue(id);
-        }
-
-        public Mono<ServerResponse> createPerson(ServerRequest request) {
-            return null;
-        }
-
-        public Mono<ServerResponse> stream(ServerRequest request) {
-            Flux<Integer> original = Flux.just(1, 2, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10);
-
-            Flux<String> flux1 = original.delayElements(Duration.ofMillis(500))
-                                         //                                         .distinct()
-                                         .groupBy(v -> v)
-                                         .concatMap(Flux::count)
-                                         .map(v -> "A : " + v);
-
-            Flux<List<String>> bufferdFlux1 = flux1.bufferTimeout(3, Duration.ofMillis(1000));
-
-            Flux<String> flux2 = Flux.range(1, 10)
-                                     .delayElements(Duration.ofMillis(500))
-                                     .map(v -> "B : " + v);
-
-            Flux<String> merged = Flux.merge(flux1, flux2);
-
-            return ServerResponse.ok()
-                                 .contentType(TEXT_EVENT_STREAM)
-                                 .body(flux1.log(), List.class);
-        }
-
-        public Mono<ServerResponse> getPerson(ServerRequest request) {
-            String id = request.pathVariable("id");
-
-            return ServerResponse.ok()
-                                 .contentType(TEXT_PLAIN)
-                                 .bodyValue(id);
-        }
+      return ServerResponse.ok()
+                           .contentType(TEXT_PLAIN)
+                           .bodyValue(id);
     }
+  }
 }

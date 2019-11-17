@@ -2,16 +2,21 @@ package com.nhn.webflux.reactive.user;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.epages.restdocs.apispec.ResourceSnippetParametersBuilder;
-import com.nhn.webflux.reactive.user.request.UserRequest;
+import com.nhn.webflux.reactive.user.handler.UserHandler;
+import com.nhn.webflux.reactive.user.handler.UserHandlerBlocking;
+import com.nhn.webflux.reactive.user.model.UserRequest;
+import com.nhn.webflux.reactive.user.repository.UserRepository;
 
 import org.hamcrest.Matchers;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.restdocs.RestDocumentationExtension;
@@ -29,7 +34,6 @@ import static org.springframework.http.HttpHeaders.LOCATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
-import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.payload.PayloadDocumentation.requestBody;
@@ -40,10 +44,16 @@ import static org.springframework.restdocs.request.RequestDocumentation.requestP
 import static org.springframework.restdocs.webtestclient.WebTestClientRestDocumentation.document;
 
 @ExtendWith({RestDocumentationExtension.class})
-@WebFluxTest
+@WebFluxTest()
 @ContextConfiguration(classes = {UserRouter.class, UserHandler.class})
 @AutoConfigureRestDocs
 class UserHandlerTest {
+
+  @MockBean
+  UserHandlerBlocking userHandlerBlocking;
+
+  @MockBean
+  UserRepository userRepository;
 
   @Autowired
   private WebTestClient webTestClient;

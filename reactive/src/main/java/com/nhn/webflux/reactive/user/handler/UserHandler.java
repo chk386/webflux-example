@@ -1,15 +1,16 @@
-package com.nhn.webflux.reactive.user;
+package com.nhn.webflux.reactive.user.handler;
 
-import com.nhn.webflux.reactive.user.request.UserRequest;
+import com.nhn.webflux.reactive.user.model.UserRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import org.springframework.web.server.ServerWebInputException;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -34,7 +35,7 @@ public class UserHandler {
 
   private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-  Mono<ServerResponse> getUser(ServerRequest request) {
+  public Mono<ServerResponse> getUser(ServerRequest request) {
     String id = request.pathVariable("id");
     String name = request.queryParam("name")
                          .orElse("");
@@ -51,18 +52,17 @@ public class UserHandler {
                                                       .build());
   }
 
-  Mono<ServerResponse> createUser(ServerRequest request) {
+  public Mono<ServerResponse> createUser(ServerRequest request) {
     return request.bodyToMono(UserRequest.class)
                   .doOnSubscribe(v -> logger.debug("doOnSubScribe 실행"))
                   .doOnNext(user -> logger.debug("created a user : {}", user))
                   .doOnNext(user -> {
                     if (user.getId() != 0) {
-                      throw new ServerWebInputException("유저 등록시 id는 0이여야 합니다.");
+                      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
                     }
                   })
                   .doOnError(e -> logger.error("유저를 저장하는 도중 오류가 발생하였습니다.", e))
                   .flatMap(user -> Mono.just(new UserRequest(9999, user.getName(), user.getEmail(), 0)))
-                  .log()
                   .flatMap(user -> {
                     final var uriVariables = Map.of("id", user.getId(), "name", user.getName());
                     URI uri = UriComponentsBuilder.newInstance()
@@ -77,13 +77,13 @@ public class UserHandler {
                   });
   }
 
-  Mono<ServerResponse> modifyUser(ServerRequest request) {
+  public Mono<ServerResponse> modifyUser(ServerRequest request) {
     return request.bodyToMono(UserRequest.class)
                   .flatMap(user -> ServerResponse.noContent()
                                                  .build());
   }
 
-  Mono<ServerResponse> bulkUsers(ServerRequest req) {
+  public Mono<ServerResponse> bulkUsers(ServerRequest req) {
     return req.body(BodyExtractors.toMultipartData())
               .flatMap(parts -> {
                 Map<String, Part> map = parts.toSingleValueMap();
@@ -93,22 +93,21 @@ public class UserHandler {
 
                 AtomicInteger atomicInteger = new AtomicInteger(0);
 
-                var flux = Flux.create(sink -> file.content()
-                                                   .doFinally(type -> sink.complete())
-                                                   .subscribe(buf -> {
-                                                     String received = buf.toString(Charset.defaultCharset());
-                                                     Arrays.stream(received.split("\n"))
-                                                           .forEach(sink::next);
-                                                   }))
-//                               .buffer(10)
-//                               .delayElements(Duration.ofSeconds(1))
-//                               .flatMap(v -> Flux.fromStream(v.stream()
-//                                                              .map(text -> (String)text)
-//                                                              .map(String::toUpperCase)
-//                                                              .map(text -> text.replace("-", "*"))
-//                                                              .map(text -> atomicInteger.incrementAndGet() + " line -> "
-//                                                                           + text + " (" + text.length() + ") Bytes")))
-                               .doOnNext(text -> logger.debug("client 송신\n{}", text));
+                var flux = file.content()
+                               .flatMap(buf -> {
+                                 String received = buf.toString(Charset.defaultCharset());
+                                 logger.info("recevied data\n{}", received);
+                                 return Flux.fromStream(Arrays.stream(received.split("\n")));
+                               })
+                               .buffer(6)
+                               .delayElements(Duration.ofMillis(500))
+                               .flatMapSequential(v -> Flux.fromStream(v.stream()
+                                                                        .map(String::toUpperCase)
+                                                                        .map(text -> text.replace("-", "*"))
+                                                                        .map(text -> atomicInteger.incrementAndGet()
+                                                                                     + " line -> " + text + " ("
+                                                                                     + text.length() + ") Bytes")))
+                               .log();
 
                 return ServerResponse.ok()
                                      .contentType(TEXT_EVENT_STREAM)

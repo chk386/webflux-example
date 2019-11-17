@@ -1,4 +1,5 @@
 import com.adarshr.gradle.testlogger.theme.ThemeType
+import com.epages.restdocs.apispec.gradle.OpenApi3Extension
 
 val snippetsDir: String by extra("build/generated-snippets")
 
@@ -35,9 +36,10 @@ repositories {
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 //  implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
-  implementation("org.springframework.boot.experimental:spring-boot-starter-data-r2dbc")
+//  implementation("org.springframework.boot.experimental:spring-boot-starter-data-r2dbc")
+//  implementation("io.r2dbc:r2dbc-client:1.0.0.M7")
 //  implementation("org.springframework.boot:spring-boot-starter-data-redis")
-//  implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+  implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
   implementation("org.springframework.boot:spring-boot-starter-jdbc")
   implementation("org.springframework.boot:spring-boot-starter-rsocket")
 //  implementation("org.springframework.boot:spring-boot-starter-web")
@@ -45,12 +47,12 @@ dependencies {
 //  implementation("org.springframework.boot:spring-boot-starter-websocket")
 //  implementation("org.apache.kafka:kafka-streams")
 //  implementation("org.springframework.kafka:spring-kafka")
-  runtimeOnly("dev.miku:r2dbc-mysql")
+//  implementation("dev.miku:r2dbc-mysql")
   runtimeOnly("mysql:mysql-connector-java")
   testImplementation("org.springframework.boot:spring-boot-starter-test") {
     exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
   }
-  testImplementation("org.springframework.boot.experimental:spring-boot-test-autoconfigure-r2dbc")
+//  testImplementation("org.springframework.boot.experimental:spring-boot-test-autoconfigure-r2dbc")
   testImplementation("io.projectreactor:reactor-test")
 //  testImplementation("org.springframework.kafka:spring-kafka-test")
   testImplementation("org.springframework.restdocs:spring-restdocs-webtestclient")
@@ -60,11 +62,11 @@ dependencies {
   implementation(group = "io.projectreactor.netty", name = "reactor-netty", version = "0.9.0.RELEASE")
 }
 
-dependencyManagement {
-  imports {
-    mavenBom("org.springframework.boot.experimental:spring-boot-bom-r2dbc:0.1.0.M2")
-  }
-}
+//dependencyManagement {
+//  imports {
+//    mavenBom("org.springframework.boot.experimental:spring-boot-bom-r2dbc:0.1.0.M2")
+//  }
+//}
 
 tasks {
   test {
@@ -87,15 +89,28 @@ tasks {
   }
 }
 
-tasks.withType(JavaCompile::class.java) {
-  options.compilerArgs.add("--enable-preview")
-}
+//tasks.withType(JavaCompile::class.java) {
+//  options.compilerArgs.add("--enable-preview")
+//}
 
 configure<JavaPluginConvention> {
-  sourceCompatibility = JavaVersion.VERSION_11
+  sourceCompatibility = JavaVersion.VERSION_1_10
+}
+
+configure<OpenApi3Extension> {
+  setServer("http://localhost:8080")
+  title = "Spring5.2 Reactive Webflux API"
+  version = "1.0"
+  description = """
+                |Webflux API Document
+                """.trimMargin()
+  format = "yml"
+  separatePublicApi = false
+  outputFileNamePrefix = project.name
+  outputDirectory = "${snippetsDir}/openapi3"
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_12
-  targetCompatibility = JavaVersion.VERSION_12
+  sourceCompatibility = JavaVersion.VERSION_1_10
+  targetCompatibility = JavaVersion.VERSION_1_10
 }

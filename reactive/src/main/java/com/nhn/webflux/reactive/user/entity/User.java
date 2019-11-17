@@ -3,7 +3,8 @@ package com.nhn.webflux.reactive.user.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.nhn.webflux.reactive.team.entity.Team;
 
-import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 
@@ -18,6 +19,7 @@ import javax.persistence.OneToOne;
  */
 
 @Entity
+@Document
 public class User implements Serializable {
 
   @Id
@@ -60,5 +62,10 @@ public class User implements Serializable {
 
   public void setTeam(Team team) {
     this.team = team;
+  }
+
+  @Override
+  public String toString() {
+    return "User{" + "id=" + id + ", name='" + name + '\'' + ", email='" + email + '\'' + ", team=" + team + '}';
   }
 }

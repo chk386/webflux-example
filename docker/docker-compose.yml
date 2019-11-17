@@ -2,6 +2,7 @@ version: '3.1'
 
 services:
   db:
+    container_name: mysql
     image: mysql
     command: --default-authentication-plugin=mysql_native_password
     restart: always
@@ -15,6 +16,7 @@ services:
     volumes:
       - ~/docker/mysql:/var/lib/mysql
   adminer:
+    container_name: adminer # mysql web client
     image: adminer
     restart: always
     ports:
@@ -22,21 +24,50 @@ services:
     environment:
       - ADMINER_DESIGN=mvt
   redis:
-    container_name: redis
     hostname: redis
     image: redis:alpine3.10
     restart: always
     ports:
       - 6379:6379
   redis-commander:
-    container_name: redis-commander
+    container_name: redis-commander # redis web client
     hostname: redis-commander
     image: rediscommander/redis-commander:latest
     restart: always
     environment:
       - REDIS_HOSTS=local:redis:6379
     ports:
-      - "8085:8081"
+      - 8082:8081
 
-
-
+  # 최초 한번 계정생성
+  # docker exec -it mongo /bin/sh
+  # mongo -u webflux -p webflux
+  # use webflux
+  # db.createUser({user: "webflux", pwd: "webflux", roles: ["dbAdmin", "readWrite"]})
+  mongo:
+    container_name: mongo
+    hostname: mongo
+    image: mongo:3.6.15-xenial
+    ports:
+      - 27017:27017
+    volumes:
+      - ~/IdeaProjects/webflux-example/docker/mongodb:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=webflux
+      - MONGO_INITDB_ROOT_PASSWORD=webflux
+      - MONGO_INITDB_DATABASE=webflux
+  mongo-express:
+    depends_on:
+      - mongo
+    container_name: mongo-express
+    hostname: mongo-express
+    image: mongo-express
+    environment:
+      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=webflux
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=webflux
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_MONGODB_SERVER=mongo
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=webflux
+    ports:
+      - 8083:8081

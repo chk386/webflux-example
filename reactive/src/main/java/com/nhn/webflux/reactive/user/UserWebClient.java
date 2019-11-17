@@ -69,15 +69,18 @@ public class UserWebClient {
                       HttpStatus httpStatus = response.statusCode();
                       logger.info("응답 코드 : {}", httpStatus.getReasonPhrase());
 
-                      return null;
-//                      return switch (httpStatus) {
-//                        case OK, CREATED, NO_CONTENT -> response.bodyToMono(UserRequest.class);
-//                        case BAD_REQUEST, UNAUTHORIZED, FORBIDDEN, NOT_FOUND -> Mono.error(new ServerWebInputException(
-//                          "클라이언트 오류 발생"));
-//                        case SERVICE_UNAVAILABLE, INTERNAL_SERVER_ERROR -> Mono.error(new ServerErrorException("오류 발생",
-//                                                                                                               new Exception()));
-//                        default -> Mono.error(new Exception("나머지 오류 발생"));
-//                      };
+                      if (httpStatus == HttpStatus.OK || httpStatus == HttpStatus.CREATED
+                          || httpStatus == HttpStatus.NO_CONTENT) {
+                        return response.bodyToMono(UserRequest.class);
+                      } else if (httpStatus == HttpStatus.BAD_REQUEST || httpStatus == HttpStatus.UNAUTHORIZED
+                                 || httpStatus == HttpStatus.FORBIDDEN || httpStatus == HttpStatus.NOT_FOUND) {
+                        return Mono.error(new ServerWebInputException("클라이언트 오류 발생"));
+                      } else if (httpStatus == HttpStatus.SERVICE_UNAVAILABLE
+                                 || httpStatus == HttpStatus.INTERNAL_SERVER_ERROR) {
+                        return Mono.error(new ServerErrorException("오류 발생", new Exception()));
+                      } else {
+                        return Mono.error(new Exception("나머지 오류 발생"));
+                      }
                     });
   }
 

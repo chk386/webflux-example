@@ -1,7 +1,7 @@
 import com.adarshr.gradle.testlogger.theme.ThemeType
 import com.epages.restdocs.apispec.gradle.OpenApi3Extension
 
-val snippetsDir: String by extra("build/generated-snippets")
+val snippetsDir = project.property("snippets.dir") as String
 
 plugins {
   java
@@ -25,7 +25,6 @@ buildscript {
 }
 
 apply(plugin = "com.epages.restdocs-api-spec")
-apply(from = "openapi3.gradle")
 
 repositories {
   mavenCentral()
@@ -35,7 +34,7 @@ repositories {
 
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-//  implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
+  implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
 //  implementation("org.springframework.boot.experimental:spring-boot-starter-data-r2dbc")
 //  implementation("io.r2dbc:r2dbc-client:1.0.0.M7")
 //  implementation("org.springframework.boot:spring-boot-starter-data-redis")
@@ -89,9 +88,18 @@ tasks {
   }
 }
 
-//tasks.withType(JavaCompile::class.java) {
-//  options.compilerArgs.add("--enable-preview")
-//}
+configure<OpenApi3Extension> {
+  setServer(project.property("openapi.url") as String)
+  title = project.name
+  version = project.version as String
+  description = """
+                  | Webflux API Documents
+                  """.trimMargin()
+  format = "yml"
+  separatePublicApi = false
+  outputFileNamePrefix = project.name
+  outputDirectory = snippetsDir
+}
 
 configure<JavaPluginConvention> {
   sourceCompatibility = JavaVersion.VERSION_1_10

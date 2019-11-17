@@ -49,7 +49,7 @@ class UserWebClientTest {
   @Test
   @DisplayName("webclient : create, retrieve를 이용한 webclient 테스트2")
   void getUserByWebClient_create_retrieve2() {
-    StepVerifier.create(userWebClient.getUserByRetrieve("http://localhost:8080/wrong/", id, name))
+    StepVerifier.create(userWebClient.getUserByRetrieve(baseUrl + "/wrong/", id, name))
                 .verifyError(ServerWebInputException.class);
   }
 

@@ -23,11 +23,18 @@ spring:
     initialization-mode: always
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  http:
-    log-request-details: true
   redis:
     host: localhost
     port: 6379
+  http:
+    log-request-details: true
+  data:
+    mongodb:
+      username: webflux
+      password: webflux
+      host: localhost
+      port: 27017
+      database: webflux
 
 server:
   error:

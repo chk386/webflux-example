@@ -7,5 +7,4 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 /**
  * @author haekyu cho
  */
-
 public interface UserMongoReactiveRepository extends ReactiveCrudRepository<User, Long> {}

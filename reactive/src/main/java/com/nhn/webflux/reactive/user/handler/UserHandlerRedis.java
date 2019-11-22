@@ -2,14 +2,14 @@ package com.nhn.webflux.reactive.user.handler;
 
 import com.nhn.webflux.reactive.user.entity.User;
 import com.nhn.webflux.reactive.user.model.UserRequest;
+import com.nhn.webflux.reactive.user.repository.UserRepository;
 
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import io.lettuce.core.RedisCommandExecutionException;
 import reactor.core.publisher.Mono;
 
 /**
@@ -20,28 +20,30 @@ import reactor.core.publisher.Mono;
 public class UserHandlerRedis {
 
   private final ReactiveRedisTemplate<String, User> template;
+  private final UserRepository userRepository;
 
-  public UserHandlerRedis(ReactiveRedisTemplate<String, User> reactiveRedisTemplate) {
-    this.template = reactiveRedisTemplate;
+  public UserHandlerRedis(ReactiveRedisTemplate<String, User> template, UserRepository userRepository) {
+    this.template = template;
+    this.userRepository = userRepository;
   }
 
   public Mono<ServerResponse> getUser(ServerRequest request) {
-    return template.opsForValue()
-                   .get(request.pathVariable("id"))
-                   .flatMap(user -> ServerResponse.ok()
-                                                  .body(BodyInserters.fromValue(user)))
-                   .switchIfEmpty(ServerResponse.noContent()
-                                                .build());
+    var id = request.pathVariable("id");
+    var mono = template.opsForValue()
+                       .get(id)
+                       .switchIfEmpty(Mono.fromCallable(() -> userRepository.findById(Long.parseLong(id))
+                                                                            .orElseThrow(Exception::new))
+                                          .flatMap(this::setUserToCache));
+
+    return ServerResponse.ok()
+                         .body(mono, User.class);
   }
 
   public Mono<ServerResponse> createUser(ServerRequest request) {
     return request.bodyToMono(UserRequest.class)
-                  .flatMap(req -> template.opsForValue()
-                                          .set(String.valueOf(req.getId()), toUser(req))
-                                          .flatMap(success -> success ? ServerResponse.ok()
-                                                                                      .bodyValue("성공")
-                                                                      : ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                                                                      .bodyValue("실패")));
+                  .map(this::toUser)
+                  .flatMap(user -> ServerResponse.ok()
+                                                 .body(setUserToCache(user), User.class));
   }
 
   private User toUser(UserRequest userRequest) {
@@ -51,5 +53,17 @@ public class UserHandlerRedis {
     user.setEmail(userRequest.getEmail());
 
     return user;
+  }
+
+  private Mono<User> setUserToCache(User user) {
+    return template.opsForValue()
+                   .set(String.valueOf(user.getId()), user)
+                   .map(result -> {
+                     if (!result) {
+                       throw new RedisCommandExecutionException("redis set command error");
+                     }
+
+                     return user;
+                   });
   }
 }

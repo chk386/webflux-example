@@ -24,11 +24,14 @@ services:
     environment:
       - ADMINER_DESIGN=mvt
   redis:
+    container_name: redis
     hostname: redis
-    image: redis:alpine3.10
+    image: redis:5.0-alpine
     restart: always
+#    command: redis-server --requirepass webflux
     ports:
       - 6379:6379
+
   redis-commander:
     container_name: redis-commander # redis web client
     hostname: redis-commander
@@ -36,10 +39,11 @@ services:
     restart: always
     environment:
       - REDIS_HOSTS=local:redis:6379
+#      - REDIS_PASSWORD=webflux
     ports:
       - 8082:8081
 
-  # 최초 한번 계정생성
+  # 최초 한번 계정생성 (dockerfile를 수정해서 하는건 너무 귀찮...)
   # docker exec -it mongo /bin/sh
   # mongo -u webflux -p webflux
   # use webflux
@@ -71,3 +75,55 @@ services:
       - ME_CONFIG_MONGODB_AUTH_DATABASE=webflux
     ports:
       - 8083:8081
+  zookeeper:
+    container_name: zookeeper
+    hostname: zookeeper
+    image: confluentinc/cp-zookeeper:5.0.1
+    ports:
+      - 2181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    # -----------------------------------------------------------------------------
+    # For connections _internal_ to the docker network, such as from other services
+    # and components, use kafka:29092.
+    #
+    # See https://rmoff.net/2018/08/02/kafka-listeners-explained/ for details
+    # -----------------------------------------------------------------------------
+    # create topic
+    # docker run --net=host --rm confluentinc/cp-kafka:5.0.1 kafka-topics --create --topic webflux --partitions 1 --replication-factor 1 --if-not-exists --zookeeper localhost:2181
+    container_name: kafka
+    hostname: kafka
+    image: confluentinc/cp-kafka:5.0.1
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      ZOOKEEPER_SERVERS: zookeeper:2181
+  zoonavigator:
+    container_name: zoonavigator
+    hostname: zoonavigator
+    image: elkozmon/zoonavigator:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 8084:9000
+  kafka-manager:
+    container_name: kafka-manager
+    hostname: kafka-manager
+    image: kafkamanager/kafka-manager:latest
+    depends_on:
+      - kafka
+    environment:
+      - ZK_HOSTS=zookeeper:2181
+    ports:
+      - 8085:9000

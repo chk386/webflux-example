@@ -1,4 +1,6 @@
-package com.nhn.webflux.reactive.user;
+package com.nhn.webflux.reactive.user.webclient;
+
+import com.nhn.webflux.reactive.user.UserWebClient;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,15 +11,14 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebInputException;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Objects;
 
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
 /**
@@ -74,24 +75,28 @@ class UserWebClientTest {
   @DisplayName("multipart 파일 업로드 테스트")
   void bulkUsers() {
     ClassPathResource resource = new ClassPathResource("sample.txt");
-    Mono<String> stringMono = WebClient.create(baseUrl)
-                                       .post()
-                                       .uri("/users/bulk")
-                                       .contentType(MULTIPART_FORM_DATA)
-                                       .header("clientId", "webflux")
-                                       .body(BodyInserters.fromMultipartData(Objects.requireNonNull(resource.getFilename()),
-                                                                             resource))
-                                       .retrieve()
-                                       .bodyToMono(String.class);
+    var flux = WebClient.create(baseUrl)
+                        .post()
+                        .uri("/users/bulk")
+                        .contentType(MULTIPART_FORM_DATA)
+                        .header("clientId", "webflux")
+                        .body(BodyInserters.fromMultipartData(Objects.requireNonNull(resource.getFilename()), resource))
+                        .retrieve()
+                        .bodyToFlux(String.class);
 
-    StepVerifier.create(stringMono)
+    StepVerifier.create(flux)
                 .recordWith(ArrayList::new)
-                .expectRecordedMatches(elements -> !elements.isEmpty())
+                .thenConsumeWhile(v -> !v.isEmpty())
                 .consumeRecordedWith(lines -> {
+                  var size = lines.size();
+                  var last = lines.stream()
+                                  .skip(size - 1)
+                                  .findFirst()
+                                  .orElseThrow(RuntimeException::new);
 
-
+                  assertThat("sample.txt의 마지막 라인에는 END가 포함되어야 한다.", last, containsString("END"));
+                  assertThat("sample.txt의 라인수는 176이다.", size, equalTo(176));
                 })
                 .verifyComplete();
-
   }
 }

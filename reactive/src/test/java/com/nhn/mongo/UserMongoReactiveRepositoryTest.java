@@ -1,6 +1,6 @@
-package com.nhn.webflux.reactive.user;
+package com.nhn.mongo;
 
-import com.nhn.mongo.UserMongoReactiveRepository;
+import com.nhn.webflux.configuration.MongoConfiguration;
 import com.nhn.webflux.reactive.user.entity.User;
 
 import org.hamcrest.beans.HasPropertyWithValue;
@@ -12,7 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestConstructor;
 
 import java.time.Duration;
@@ -22,14 +23,14 @@ import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.iterableWithSize;
 
 /**
  * @author haekyu cho
  */
-@SpringBootTest
+@DataMongoTest
+@ContextConfiguration(classes = {MongoConfiguration.class})
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UserMongoReactiveRepositoryTest {
@@ -45,8 +46,8 @@ class UserMongoReactiveRepositoryTest {
   @Order(1)
   @DisplayName("mongoDB 등록 테스트")
   void createUserTest() {
-    var input = Flux.range(19800827, 100)
-                    .delayElements(Duration.ofMillis(100))
+    var input = Flux.range(800827, 100)
+                    .delayElements(Duration.ofMillis(1))
                     .map(index -> {
                       User user = new User();
                       user.setId(Integer.toUnsignedLong(index));
@@ -56,27 +57,16 @@ class UserMongoReactiveRepositoryTest {
                       return user;
                     });
 
-    var output = userMongoReactiveRepository.saveAll(input);
-
-    StepVerifier.create(output)
-                .consumeNextWith(user -> {
-                  logger.info("saved user : {}", user.toString());
-                  assertThat("19800827부터 시작", user.getId(), equalTo(19800827L));
-                })
-                .consumeNextWith(user -> {
-                  logger.info("saved user : {}", user.toString());
-                  assertThat("다음은 19800828", user.getId(), equalTo(19800828L));
-                })
-                .expectNextCount(98)
+    StepVerifier.create(userMongoReactiveRepository.saveAll(input))
+                .expectNextCount(100)
                 .verifyComplete();
-
   }
 
   @Test
   @Order(2)
   @DisplayName("mongoDB 조회 테스트")
   void fetchUserTest() {
-    var users = userMongoReactiveRepository.findAllById(Flux.range(19800827, 100)
+    var users = userMongoReactiveRepository.findAllById(Flux.range(800827, 100)
                                                             .map(Integer::longValue));
 
     StepVerifier.create(users)
@@ -84,9 +74,9 @@ class UserMongoReactiveRepositoryTest {
                 .expectNextCount(100)
                 .consumeRecordedWith(results -> {
                   assertThat("총 100개를 조회해야한다.", results, iterableWithSize(100));
-                  assertThat("19800826보다 ID가 커야한다.",
+                  assertThat("800827보다 같거나 크다.",
                              results,
-                             Every.everyItem(HasPropertyWithValue.hasProperty("id", greaterThan(19800826L))));
+                             Every.everyItem(HasPropertyWithValue.hasProperty("id", greaterThanOrEqualTo(800827L))));
                 })
                 .verifyComplete();
   }

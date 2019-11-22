@@ -40,7 +40,7 @@ public class UserHandlerBlocking {
 
     return ServerResponse.ok()
                          .body(Mono.fromCallable(() -> userRepository.findById(id)
-                                                                     .map(this::toUserResponse))
+                                                                     .map(UserHandlerBlocking::toUserResponse))
                                    .subscribeOn(Schedulers.boundedElastic()), UserResponse.class);
 
   }
@@ -77,7 +77,7 @@ public class UserHandlerBlocking {
     return user;
   }
 
-  private UserResponse toUserResponse(User user) {
+  static UserResponse toUserResponse(User user) {
     return new UserResponse(user.getId(),
                             user.getName(),
                             user.getEmail(),

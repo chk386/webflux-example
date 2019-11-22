@@ -1,9 +1,8 @@
-package com.nhn.webflux.reactive.user;
+package com.nhn.webflux.reactive.user.handler;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.epages.restdocs.apispec.ResourceSnippetParametersBuilder;
-import com.nhn.webflux.reactive.user.handler.UserHandler;
-import com.nhn.webflux.reactive.user.handler.UserHandlerBlocking;
+import com.nhn.webflux.reactive.user.UserRouter;
 import com.nhn.webflux.reactive.user.model.UserRequest;
 import com.nhn.webflux.reactive.user.repository.UserRepository;
 
@@ -18,12 +17,15 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.payload.FieldDescriptor;
 import org.springframework.restdocs.payload.JsonFieldType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
+
+import java.time.Duration;
 
 import static com.epages.restdocs.apispec.ResourceDocumentation.headerWithName;
 import static com.epages.restdocs.apispec.ResourceDocumentation.parameterWithName;
@@ -47,6 +49,12 @@ class UserHandlerTest {
 
   @MockBean
   UserHandlerBlocking userHandlerBlocking;
+
+  @MockBean
+  UserHandlerRedis userHandlerRedis;
+
+  @MockBean
+  ReactiveRedisTemplate reactiveRedisTemplate;
 
   @MockBean
   UserRepository userRepository;
@@ -92,7 +100,10 @@ class UserHandlerTest {
     Resource resource = new ClassPathResource("sample.txt");
 
     // @formatter:off
-    webTestClient.post()
+    webTestClient.mutate()
+                 .responseTimeout(Duration.ofMinutes(5))
+                 .build()
+                 .post()
                  .uri("/users/bulk")
                  .accept(MULTIPART_FORM_DATA)
                  .header(CLIENT_ID, "webflux")

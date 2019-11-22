@@ -54,7 +54,7 @@ public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
     @Override
     public Map<String, Object> getErrorAttributes(ServerRequest request, boolean includeStackTrace) {
       final Map<String, Object> errorAttributes = super.getErrorAttributes(request, includeStackTrace);
-      errorAttributes.put("globalError", "커스텀으로 변경하였음");
+      errorAttributes.put("globalError", "webflux global Error");
 
       return errorAttributes;
     }

@@ -27,6 +27,9 @@ dependencies {
     exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
   }
 
+  implementation("org.springframework.boot.experimental:spring-boot-starter-data-r2dbc")
+  implementation("io.r2dbc:r2dbc-client:1.0.0.M7")
+  implementation("com.github.jasync-sql:jasync-r2dbc-mysql:1.0.11")
   testImplementation("org.springframework.boot.experimental:spring-boot-test-autoconfigure-r2dbc")
   testImplementation("io.projectreactor:reactor-test")
 }

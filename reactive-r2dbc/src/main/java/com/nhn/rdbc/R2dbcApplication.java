@@ -1,4 +1,4 @@
-package com.nhn.r2dbc;
+package com.nhn.rdbc;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +11,8 @@ import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 
 import reactor.core.publisher.Mono;
+
+import static java.time.Duration.ofSeconds;
 
 /**
  * <a href="https://docs.spring.io/spring-data/r2dbc/docs/1.0.0.BUILD-SNAPSHOT/reference/html/#r2dbc.repositories">r2jdbc repositories reference</a>>
@@ -33,21 +35,20 @@ public class R2dbcApplication {
   @Bean
   ApplicationRunner run(UserReactiveRepository userReactiveRepository) {
     return args -> {
-      final Mono<User> user1 = userReactiveRepository.findById(22L)
-                                                     .delayElement(Duration.ofSeconds(2));
-      final Mono<User> user2 = userService.createUser(new User("james harden", "harden@nhn.com"))
-                                          .delayElement(Duration.ofSeconds(3));
+      var user1 = userReactiveRepository.findById(22L)
+                                        .delayElement(ofSeconds(1));
+      var user2 = userService.createUser(new User("james harden", "harden@nhn.com"))
+                             .delayElement(ofSeconds(3));
+      var user3 = Mono.just("hello webflux").delayElement(ofSeconds(5));
 
-      final long start = System.currentTimeMillis();
-      CountDownLatch latch = new CountDownLatch(1);
+      var start = System.currentTimeMillis();
+      var latch = new CountDownLatch(1);
 
-      Mono.zip(user1, user2)
+      Mono.zip(user1, user2, user3)
           .subscribe(tuple -> {
-            final User t1 = tuple.getT1();
-            final User t2 = tuple.getT2();
-
-            logger.info("조회 : {}", t1.toString());
-            logger.info("등록 : {}", t2.toString());
+            logger.info("user1 : {}", tuple.getT1().toString());
+            logger.info("user2 : {}", tuple.getT2().toString());
+            logger.info("user3 : {}", tuple.getT3());
             logger.info("실행시간 : {} ms", System.currentTimeMillis() - start);
 
             latch.countDown();

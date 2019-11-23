@@ -1,4 +1,4 @@
-package com.nhn.r2dbc;
+package com.nhn.rdbc;
 
 import org.springframework.data.annotation.Id;
 

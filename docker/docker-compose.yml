@@ -55,7 +55,7 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - ~/IdeaProjects/webflux-example/docker/mongodb:/data/db
+      - ./mongodb:/data/db
     environment:
       - MONGO_INITDB_ROOT_USERNAME=webflux
       - MONGO_INITDB_ROOT_PASSWORD=webflux
@@ -92,8 +92,15 @@ services:
     #
     # See https://rmoff.net/2018/08/02/kafka-listeners-explained/ for details
     # -----------------------------------------------------------------------------
+
     # create topic
     # docker run --net=host --rm confluentinc/cp-kafka:5.0.1 kafka-topics --create --topic webflux --partitions 1 --replication-factor 1 --if-not-exists --zookeeper localhost:2181
+
+    # producer
+    # kafka-console-producer --broker-list localhost:9092 --topic webflux --property parse.key=true --property key.seperator=,
+
+    # consumer
+    # kafka-console-consumer --bootstrap-server localhost:9092 --topic webflux
     container_name: kafka
     hostname: kafka
     image: confluentinc/cp-kafka:5.0.1
@@ -108,7 +115,8 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      ZOOKEEPER_SERVERS: zookeeper:2181
+      CONNECT_GROUP_ID: webflux
+#      ZOOKEEPER_SERVERS: zookeeper:2181
   zoonavigator:
     container_name: zoonavigator
     hostname: zoonavigator

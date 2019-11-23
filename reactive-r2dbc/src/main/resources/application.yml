@@ -5,8 +5,8 @@ spring:
     password: webflux
     pool:
       validation-query: select 'r2dbc'
-      max-size: 10
-      initial-size: 10
+      max-size: 3
+      initial-size: 3
       max-idle-time: 5m
 
 logging:
@@ -15,7 +15,6 @@ logging:
     org.springframework: INFO
     org.springframework.data.r2dbc.core: DEBUG
     org.springframework.transaction.interceptor: TRACE
-    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG
 #    org.springframework.data.r2dbc.connectionfactory: DEBUG
 #    com.github.jasync: DEBUG
 #    root: WARN

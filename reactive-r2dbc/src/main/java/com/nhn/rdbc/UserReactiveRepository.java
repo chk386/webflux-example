@@ -1,7 +1,6 @@
-package com.nhn.r2dbc;
+package com.nhn.rdbc;
 
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author haekyu cho

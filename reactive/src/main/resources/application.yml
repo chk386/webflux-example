@@ -6,7 +6,7 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     properties:
       hibernate:
-#        show_sql: true
+        #        show_sql: true
         format_sql: true
         use_sql_comments: true
   datasource:
@@ -22,7 +22,6 @@ spring:
     platform: mysql
     initialization-mode: always
     driver-class-name: com.mysql.cj.jdbc.Driver
-
   redis:
     host: localhost
     port: 6379
@@ -35,6 +34,44 @@ spring:
       host: localhost
       port: 27017
       database: webflux
+  kafka:
+#    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: webflux
+      bootstrap-servers: localhost:9092
+      auto-commit-interval: 1000
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      enable-auto-commit: true
+      properties:
+        topic: webflux
+        spring:
+          json:
+            trusted:
+              packages: com.nhn.mongo
+
+    producer:
+      bootstrap-servers: localhost:9092
+      acks: all
+      retries: 0
+      batch-size: 20000
+      buffer-memory: 3000000
+      properties:
+        linger:
+          ms: 1
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+#  r2dbc:
+#    url: r2dbc:pool:mysql://localhost:3306/webflux
+#    username: webflux
+#    password: webflux
+#    pool:
+#      validation-query: select 'r2dbc'
+#      max-size: 3
+#      initial-size: 3
+#      max-idle-time: 5m
 
 server:
   error:
@@ -46,23 +83,23 @@ logging:
   level:
     root: WARN
     com.nhn: DEBUG
-    org.springframework: ERROR
-    org.springframework.beans.factory.support.DefaultListableBeanFactory: WARN
+    org.springframework: WARN
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG
     org.springframework.web.server.adapter.HttpWebHandlerAdapter: TRACE
-#    org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
-    # log routingFunctionMapping
-#    org.springframework.web.reactive.function: TRACE
+    org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
+    org.springframework.web.reactive.function: TRACE
 
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
     org.springframework.transaction.interceptor: TRACE
     com.zaxxer.hikari: ERROR
 
-    org.springframework.data: TRACE
+    org.springframework.data: DEBUG
     io.lettuce.core.protocol.CommandEncoder: TRACE
 
     reactor.Mono: DEBUG
     reactor.Flux: DEBUG
+    reactor.kafka: DEBUG
     web: ERROR
 
 

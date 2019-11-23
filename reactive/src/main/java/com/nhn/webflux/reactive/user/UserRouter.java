@@ -1,5 +1,6 @@
 package com.nhn.webflux.reactive.user;
 
+import com.nhn.mongo.RequestLog;
 import com.nhn.webflux.reactive.user.handler.UserHandler;
 import com.nhn.webflux.reactive.user.handler.UserHandlerBlocking;
 import com.nhn.webflux.reactive.user.handler.UserHandlerRedis;
@@ -8,13 +9,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 import org.springframework.web.reactive.function.server.HandlerFilterFunction;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Function;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -47,12 +51,14 @@ public class UserRouter {
   private final UserHandler userHandler;
   private final UserHandlerBlocking userHandlerBlocking;
   private final UserHandlerRedis userHandlerRedis;
+  private final ReactiveKafkaProducerTemplate<String, Object> kafkaProducerTemplate;
 
-  public UserRouter(UserHandler userHandler, UserHandlerBlocking userHandlerBlocking,
-                    UserHandlerRedis userHandlerRedis) {
+  public UserRouter(UserHandler userHandler, UserHandlerBlocking userHandlerBlocking, UserHandlerRedis userHandlerRedis,
+                    ReactiveKafkaProducerTemplate<String, Object> kafkaProducerTemplate) {
     this.userHandler = userHandler;
     this.userHandlerBlocking = userHandlerBlocking;
     this.userHandlerRedis = userHandlerRedis;
+    this.kafkaProducerTemplate = kafkaProducerTemplate;
   }
 
   @Bean
@@ -76,18 +82,49 @@ public class UserRouter {
 
   private HandlerFilterFunction<ServerResponse, ServerResponse> clientFilterFunction() {
     return (request, next) -> {
-      boolean present = request.headers()
-                               .header("clientId")
-                               .stream()
-                               .findAny()
-                               .isPresent();
+      checkClientId(request);
 
-      if (!present) {
-        log.warn("헤더 clientId를 넣어주세요.");
+      var handle = next.handle(request);
+
+      if (!kafkaProducerTemplate.getClass()
+                                .getSimpleName()
+                                .contains("mock")) {
+
+        handle.flatMap(produce(request));
       }
 
-      return next.handle(request);
+      return handle;
     };
+  }
+
+  private Function<ServerResponse, Mono<? extends ServerResponse>> produce(ServerRequest request) {
+    return response -> {
+      RequestLog requestLog = new RequestLog(System.currentTimeMillis(),
+                                             request.uri()
+                                                    .toString(),
+                                             request.remoteAddress()
+                                                    .orElse(new InetSocketAddress(9999))
+                                                    .getAddress()
+                                                    .getHostAddress());
+
+      return kafkaProducerTemplate.send("webflux", requestLog)
+                                  .doOnNext(v -> log.info("[kafka producer] topic : [webflux], value : {}",
+                                                          requestLog.toString()))
+                                  .map(v -> response);
+    };
+  }
+
+  private void checkClientId(ServerRequest request) {
+    // 저희팀의 경우는 kotlin extensions를 이용하여
+    boolean present = request.headers()
+                             .header("clientId")
+                             .stream()
+                             .findAny()
+                             .isPresent();
+
+    if (!present) {
+      log.warn("헤더 clientId를 넣어주세요.");
+    }
   }
 
   public static class PersonHandler {

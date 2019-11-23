@@ -35,8 +35,6 @@ repositories {
 dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-data-mongodb-reactive")
-//  implementation("org.springframework.boot.experimental:spring-boot-starter-data-r2dbc")
-//  implementation("io.r2dbc:r2dbc-client:1.0.0.M7")
 //  implementation("org.springframework.boot:spring-boot-starter-data-redis")
   implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
   implementation("org.springframework.boot:spring-boot-starter-jdbc")
@@ -45,27 +43,22 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-webflux")
 //  implementation("org.springframework.boot:spring-boot-starter-websocket")
 //  implementation("org.apache.kafka:kafka-streams")
-//  implementation("org.springframework.kafka:spring-kafka")
-//  implementation("dev.miku:r2dbc-mysql")
+  implementation("org.springframework.kafka:spring-kafka")
+  implementation("io.projectreactor.kafka:reactor-kafka")
+  implementation("io.projectreactor.netty:reactor-netty")
+
   runtimeOnly("mysql:mysql-connector-java")
   testImplementation("org.springframework.boot:spring-boot-starter-test") {
     exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
   }
-//  testImplementation("org.springframework.boot.experimental:spring-boot-test-autoconfigure-r2dbc")
+
   testImplementation("io.projectreactor:reactor-test")
-//  testImplementation("org.springframework.kafka:spring-kafka-test")
+  testImplementation("org.springframework.kafka:spring-kafka-test")
   testImplementation("org.springframework.restdocs:spring-restdocs-webtestclient")
 
   testImplementation(group = "com.epages", name = "restdocs-api-spec-webtestclient", version = "0.9.5")
   implementation(group = "io.netty", name = "netty-codec-http", version = "4.1.43.Final")
-  implementation(group = "io.projectreactor.netty", name = "reactor-netty", version = "0.9.0.RELEASE")
 }
-
-//dependencyManagement {
-//  imports {
-//    mavenBom("org.springframework.boot.experimental:spring-boot-bom-r2dbc:0.1.0.M2")
-//  }
-//}
 
 tasks {
   test {
@@ -76,7 +69,7 @@ tasks {
       showStackTraces = false
     }
 
-    jvmArgs = listOf("--enable-preview")
+//    jvmArgs = listOf("--enable-preview")
   }
 
   testlogger {

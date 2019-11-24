@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
 
+import reactor.core.publisher.Flux;
+
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.everyItem;
@@ -32,7 +34,6 @@ import static org.hamcrest.core.Is.is;
 @ExtendWith(OutputCaptureExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class DualityTest {
-
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private final List<Integer> integers = List.of(1, 2, 3, 4, 5);
 
@@ -62,6 +63,28 @@ class DualityTest {
     assertThat("1,2,3,4,5가 출력되어야 한다.", captureOutput(output), everyItem(is(in(integers))));
   }
 
+  @Test
+  @Order(3)
+  @DisplayName("Reactive Streams 테스트")
+  void reactiveStreamsTest(CapturedOutput output) {
+    Publisher<Integer> publisher = s -> integers.forEach(s::onNext);
+    publisher.subscribe(new ExamSubscriber());
+
+    assertThat("1,2,3,4,5가 출력되어야 한다.", captureOutput(output), everyItem(is(in(integers))));
+  }
+
+  @Test
+  @Order(4)
+  @DisplayName("Reactor 테스트")
+  void reactorTest(CapturedOutput output) {
+    Flux.fromIterable(integers)
+        .subscribe(v -> {
+          logger.info("Reactor : {}", v);
+        });
+
+    assertThat("1,2,3,4,5가 출력되어야 한다.", captureOutput(output), everyItem(is(in(integers))));
+  }
+
   static class ExamObservable extends Observable {
 
     void push(List<Integer> integers) {
@@ -72,17 +95,8 @@ class DualityTest {
     }
   }
 
-  @Test
-  @Order(3)
-  @DisplayName("Reactive Streams Interace 테스트")
-  void reactiveStreamsTest(CapturedOutput output) {
-    Publisher<Integer> publisher = s -> integers.forEach(s::onNext);
-    publisher.subscribe(new ExamSubscriber());
-
-    assertThat("1,2,3,4,5가 출력되어야 한다.", captureOutput(output), everyItem(is(in(integers))));
-  }
-
   public static class ExamSubscriber implements Subscriber<Integer> {
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
@@ -107,6 +121,7 @@ class DualityTest {
   private List<Integer> captureOutput(CapturedOutput output) {
     return Arrays.stream(output.getOut()
                                .split("\n"))
+                 .filter(line -> line.contains("DualityTest"))
                  .map(line -> Integer.parseInt(line.substring(line.length() - 1)))
                  .collect(toList());
   }

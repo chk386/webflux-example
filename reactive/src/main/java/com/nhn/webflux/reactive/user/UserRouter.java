@@ -16,17 +16,12 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import java.net.InetSocketAddress;
-import java.time.Duration;
-import java.util.List;
 import java.util.function.Function;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
-import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
-import static org.springframework.http.MediaType.TEXT_PLAIN;
 import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -124,52 +119,6 @@ public class UserRouter {
 
     if (!present) {
       log.warn("헤더 clientId를 넣어주세요.");
-    }
-  }
-
-  public static class PersonHandler {
-    // ...
-
-    public Mono<ServerResponse> listPeople(ServerRequest request) {
-      String id = request.pathVariable("id");
-
-      return ServerResponse.ok()
-                           .contentType(TEXT_PLAIN)
-                           .bodyValue(id);
-    }
-
-    public Mono<ServerResponse> createPerson(ServerRequest request) {
-      return null;
-    }
-
-    public Mono<ServerResponse> stream(ServerRequest request) {
-      Flux<Integer> original = Flux.just(1, 2, 3, 4, 4, 4, 5, 6, 7, 8, 9, 10);
-
-      Flux<String> flux1 = original.delayElements(Duration.ofMillis(500))
-                                   //                                         .distinct()
-                                   .groupBy(v -> v)
-                                   .concatMap(Flux::count)
-                                   .map(v -> "A : " + v);
-
-      Flux<List<String>> bufferdFlux1 = flux1.bufferTimeout(3, Duration.ofMillis(1000));
-
-      Flux<String> flux2 = Flux.range(1, 10)
-                               .delayElements(Duration.ofMillis(500))
-                               .map(v -> "B : " + v);
-
-      Flux<String> merged = Flux.merge(flux1, flux2);
-
-      return ServerResponse.ok()
-                           .contentType(TEXT_EVENT_STREAM)
-                           .body(flux1.log(), List.class);
-    }
-
-    public Mono<ServerResponse> getPerson(ServerRequest request) {
-      String id = request.pathVariable("id");
-
-      return ServerResponse.ok()
-                           .contentType(TEXT_PLAIN)
-                           .bodyValue(id);
     }
   }
 }

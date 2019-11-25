@@ -10,6 +10,7 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -64,12 +65,24 @@ class UserMongoReactiveRepositoryTest {
                 .verifyComplete();
   }
 
+  private Subscription subscription;
+
   @Test
   @Order(2)
   @DisplayName("mongoDB 조회 테스트")
   void fetchUserTest() {
     var users = userMongoReactiveRepository.findAllById(Flux.range(800827, 100)
-                                                            .map(Integer::longValue));
+                                                            .map(Integer::longValue))
+                                           .log()
+                                           .doOnSubscribe(v -> {
+                                             this.subscription = v;
+//                                             this.subscription.request(10);
+                                           })
+                                           .doOnNext(v -> {
+                                             if (v.getId() > 800840L) {
+                                               this.subscription.request(1);
+                                             }
+                                           });
 
     StepVerifier.create(users)
                 .recordWith(ArrayList::new)

@@ -33,7 +33,7 @@ import static org.hamcrest.core.Is.is;
  */
 @ExtendWith(OutputCaptureExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class DualityTest {
+class A01_DualityTest {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private final List<Integer> integers = List.of(1, 2, 3, 4, 5);
 
@@ -101,10 +101,12 @@ class DualityTest {
 
     @Override
     public void onSubscribe(Subscription s) {
+      // 최초한번 실행
     }
 
     @Override
     public void onNext(Integer integer) {
+      // publisher가 데이터를 emit할때 마다 실행
       logger.info("Reactive Streams : {}", integer);
     }
 

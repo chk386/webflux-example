@@ -1,6 +1,7 @@
 package com.nhn.reactor;
 
-import org.hamcrest.Matchers;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,21 +10,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.CountDownLatch;
 
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.UnicastProcessor;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
+import reactor.util.function.Tuple2;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.in;
-import static org.hamcrest.core.Is.is;
 
 /**
  * @author haekyu cho
@@ -44,24 +48,19 @@ class A05_ColdVsHotTest {
     Thread.sleep(3000);
     source.subscribe(color2 -> logger.info("Subscriber 2: {}", color2));
 
-    var colors = Arrays.stream(output.getOut()
-                                     .split("\n"))
-                       .filter(v -> v.contains(": "))
-                       .map(v -> v.substring(v.lastIndexOf(":") + 2))
-                       .collect(toList());
-
     assertThat("2번 실행된다.",
-               colors,
-               containsInAnyOrder("BLUE", "GREEN", "ORANGE", "PURPLE", "BLUE", "GREEN", "ORANGE", "PURPLE"));
-
+               extractColorsFromConsole(output),
+               contains("BLUE", "GREEN", "ORANGE", "PURPLE", "BLUE", "GREEN", "ORANGE", "PURPLE"));
   }
 
   @Test
   @DisplayName("flux: hot 테스트")
-  void hotTest() {
+  void hotTest(CapturedOutput output) {
     DirectProcessor<String> hotSource = DirectProcessor.create();
     Flux<String> hotFlux = hotSource.map(String::toUpperCase);
 
+    hotSource.onNext("black");
+    hotSource.onNext("red");
     hotFlux.subscribe(d -> logger.info("Subscriber 1 to Hot Source: {}", d));
 
     hotSource.onNext("blue");
@@ -72,35 +71,59 @@ class A05_ColdVsHotTest {
     hotSource.onNext("orange");
     hotSource.onNext("purple");
     hotSource.onComplete();
+
+    assertThat("구독을 하게 되면 실행된다.",
+               extractColorsFromConsole(output),
+               contains("BLUE", "GREEN", "ORANGE", "ORANGE", "PURPLE", "PURPLE"));
   }
 
-  // https://hychul.github.io/development/2019/03/21/reactor-hot-stream/
+  private ConnectableFlux<Integer> sink;
+
+  @BeforeEach
+  void fluxSink() {
+    sink = Flux.<Integer>create(fluxSink -> {
+      var i = 0;
+      while (true) {
+        fluxSink.next(i);
+        i++;
+        try {
+          Thread.sleep(1000);
+        } catch (InterruptedException ignored) {
+        }
+      }
+    }).take(10)
+      .log()
+      .subscribeOn(Schedulers.newSingle("HOT FLUX"))
+      .publish();
+
+    sink.connect();
+  }
+
   @Test
-  void a() throws InterruptedException {
-    Flux<Integer> source = Flux.range(1, 3)
-                               .doOnSubscribe(s -> System.out.println("subscribed to source"));
+  @DisplayName("flux: integer")
+  void hotConnectableFlux() throws InterruptedException {
+    Thread.sleep(3000);
+    final Flux<Integer> newFlux = Flux.range(1000, 10)
+                                      .delayElements(Duration.ofMillis(500))
+                                      .publishOn(Schedulers.newSingle("COLD FLUX"))
+                                      .log();
 
-    ConnectableFlux<Integer> co = source.publish();
+    final Flux<Integer> merge = Flux.merge(sink, newFlux)
+                                    .subscribeOn(Schedulers.newSingle("MERGE FLUX"));
 
-    co.subscribe(System.out::println, e -> {}, () -> {});
-    co.subscribe(System.out::println, e -> {}, () -> {});
+    StepVerifier.create(merge)
+                .recordWith(ArrayList::new)
+                .expectNextCount(16)
+                .consumeRecordedWith(v -> logger.info("총 카운트 : {}", v.size()))
+                .verifyComplete();
+  }
 
-    System.out.println("done subscribing");
-    Thread.sleep(500);
-    System.out.println("will now connect");
-
-    co.connect();
-
-
-    Flux<Integer> source2 = Flux.range(1, 3)
-                               .doOnSubscribe(s -> System.out.println("subscribed to source2"));
-
-    Flux<Integer> autoCo = source2.publish().autoConnect(2);
-
-    autoCo.subscribe(System.out::println, e -> {}, () -> {});
-    System.out.println("subscribed first");
-    Thread.sleep(500);
-    System.out.println("subscribing second");
-    autoCo.subscribe(System.out::println, e -> {}, () -> {});
+  @NotNull
+  private List<String> extractColorsFromConsole(CapturedOutput output) {
+    return Arrays.stream(output.getOut()
+                               .split("\n"))
+                 .filter(v -> v.contains(": "))
+                 .map(v -> v.substring(v.lastIndexOf(":") + 2))
+                 .collect(toList());
   }
 }

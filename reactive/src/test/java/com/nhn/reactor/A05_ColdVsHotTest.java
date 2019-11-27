@@ -10,6 +10,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
+import java.io.IOException;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,11 +83,10 @@ class A05_ColdVsHotTest {
                contains("BLUE", "GREEN", "ORANGE", "ORANGE", "PURPLE", "PURPLE"));
   }
 
-  private ConnectableFlux<Integer> sink;
-
-  @BeforeEach
-  void fluxSink() {
-    sink = Flux.<Integer>create(fluxSink -> {
+  @Test
+  @DisplayName("flux: integer")
+  void hotConnectableFlux() throws Exception {
+    ConnectableFlux<Integer> sink = Flux.<Integer>create(fluxSink -> {
       var i = 0;
       while (true) {
         fluxSink.next(i);
@@ -97,11 +102,7 @@ class A05_ColdVsHotTest {
       .publish();
 
     sink.connect();
-  }
 
-  @Test
-  @DisplayName("flux: integer")
-  void hotConnectableFlux() throws InterruptedException {
     Thread.sleep(3000);
     final Flux<Integer> newFlux = Flux.range(1000, 10)
                                       .delayElements(Duration.ofMillis(500))

@@ -8,8 +8,11 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
@@ -78,23 +81,42 @@ public class A03_FluxTest {
   }
 
   @Test
-  @DisplayName("유용한 flux 유틸 테스트")
+  @DisplayName("쓰레드 격리")
   void createFlux4() {
+    var flux = Flux.just("A", "B", "C")
+                   .publishOn(Schedulers.newSingle("AA"))
+                   .log()
+                   .subscribeOn(Schedulers.newSingle("BB"));
+
+    StepVerifier.create(flux)
+                .expectNext("A")
+                .expectNext("B")
+                .expectNext("C")
+                .verifyComplete();
+  }
+
+  @Test
+  @DisplayName("유용한 flux 유틸 테스트")
+  void createFlux5() {
 
     Flux<String> flux1 = Flux.just(1, 2, 3, 4, 4, 4, 5, 6, 7, 8, 9, 9, 10)
                              .delayElements(Duration.ofMillis(200))
-                             .publishOn(Schedulers.newSingle("flux1"))
+                             .publishOn(Schedulers.newSingle("AAAA"))
                              .groupBy(v -> v)
                              .log()
                              .map(v -> "flux1 [data:" + v.key() + ", count:" + v.count() + "]");
 
     Flux<String> flux2 = Flux.range(100, 10)
                              .delayElements(Duration.ofMillis(500))
-                             .publishOn(Schedulers.newSingle("flux2"))
+                             .publishOn(Schedulers.newSingle("BBBB"))
                              .log()
                              .map(v -> "flux2 : " + v);
 
-    Flux<String> merged = Flux.merge(flux1, flux2);
+    //    비동기
+    Flux<String> merged = Flux.merge(flux1, flux2)
+                              .subscribeOn(Schedulers.newSingle("MERGED"));
+    //    동기
+    Flux<String> concat = Flux.concat(flux1, flux2);
 
     StepVerifier.create(merged)
                 .recordWith(ArrayList::new)

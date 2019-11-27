@@ -97,8 +97,8 @@ logging:
     org.springframework.data: DEBUG
     io.lettuce.core.protocol.CommandEncoder: TRACE
 
-    reactor.Mono: DEBUG
-    reactor.Flux: DEBUG
+    reactor.Mono: INFO
+    reactor.Flux: INFO
     reactor.kafka: DEBUG
     web: ERROR
 

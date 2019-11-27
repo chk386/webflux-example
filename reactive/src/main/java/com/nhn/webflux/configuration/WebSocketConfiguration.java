@@ -44,6 +44,20 @@ public class WebSocketConfiguration {
     return new SimpleUrlHandlerMapping(urlMap, -1);
   }
 
+  private WebSocketHandler echoHandler() {
+    return session -> {
+      var output = session.receive()
+                          .map(message -> {
+                            var payloadAsText = message.getPayloadAsText();
+                            logger.info("payload : {}", payloadAsText);
+
+                            return session.textMessage("echo :" + payloadAsText);
+                          });
+
+      return session.send(output);
+    };
+  }
+
   private WebSocketHandler pubsub() {
     return session -> {
       session.receive()
@@ -60,20 +74,6 @@ public class WebSocketConfiguration {
 
                                              return session.textMessage(text);
                                            }));
-    };
-  }
-
-  private WebSocketHandler echoHandler() {
-    return session -> {
-      var output = session.receive()
-                          .map(message -> {
-                            var payloadAsText = message.getPayloadAsText();
-                            logger.info("payload : {}", payloadAsText);
-
-                            return session.textMessage("echo :" + payloadAsText);
-                          });
-
-      return session.send(output);
     };
   }
 }

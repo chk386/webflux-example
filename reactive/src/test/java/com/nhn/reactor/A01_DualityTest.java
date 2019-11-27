@@ -19,6 +19,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
+import java.util.Observer;
+import java.util.concurrent.Flow;
 
 import reactor.core.publisher.Flux;
 
@@ -78,9 +80,7 @@ class A01_DualityTest {
   @DisplayName("Reactor 테스트")
   void reactorTest(CapturedOutput output) {
     Flux.fromIterable(integers)
-        .subscribe(v -> {
-          logger.info("Reactor : {}", v);
-        });
+        .subscribe(v -> logger.info("Reactor : {}", v));
 
     assertThat("1,2,3,4,5가 출력되어야 한다.", captureOutput(output), everyItem(is(in(integers))));
   }
@@ -98,6 +98,7 @@ class A01_DualityTest {
   public static class ExamSubscriber implements Subscriber<Integer> {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private Subscription subscription;
 
     @Override
     public void onSubscribe(Subscription s) {

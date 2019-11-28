@@ -19,10 +19,9 @@ import org.springframework.test.context.TestConstructor;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.function.Supplier;
 
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -73,10 +72,10 @@ class UserMongoReactiveRepositoryTest {
   void fetchUserTest() {
     var users = userMongoReactiveRepository.findAllById(Flux.range(800827, 100)
                                                             .map(Integer::longValue))
+                                           .publishOn(Schedulers.newSingle("MONGO"))
                                            .log()
                                            .doOnSubscribe(v -> {
                                              this.subscription = v;
-//                                             this.subscription.request(10);
                                            })
                                            .doOnNext(v -> {
                                              if (v.getId() > 800840L) {

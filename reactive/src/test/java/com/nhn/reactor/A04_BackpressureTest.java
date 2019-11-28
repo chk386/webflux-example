@@ -7,7 +7,6 @@ import org.reactivestreams.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.management.MemoryUsage;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 
@@ -41,13 +40,12 @@ class A04_BackpressureTest {
                                        this.subscription.request(1);
                                      }
 
-                                     if(freeMem%10 == 0) {
+                                     if (freeMem % 10 == 0) {
                                        this.subscription.request(10);
                                      }
                                    })
                                    .doOnCancel(() -> logger.warn("cancel요청"))
                                    .doOnSubscribe(s -> this.subscription = s);
-
 
     StepVerifier.create(publisher)
                 .expectNextCount(98)

@@ -51,11 +51,8 @@ public class KafkaConfiguration {
     return new ReactiveKafkaProducerTemplate<>(SenderOptions.create(producer.buildProperties()));
   }
 
-  @Autowired
-  RequestLogMongoReactiveRepository requestLogMongoReactiveRepository;
-
   @Bean
-  ApplicationRunner run(ReactiveKafkaConsumerTemplate<String, Object> kafkaReceiver) {
+  ApplicationRunner run(ReactiveKafkaConsumerTemplate<String, Object> kafkaReceiver, RequestLogMongoReactiveRepository requestLogMongoReactiveRepository) {
     return args -> {
       kafkaReceiver.receive()
                    //                   .log()

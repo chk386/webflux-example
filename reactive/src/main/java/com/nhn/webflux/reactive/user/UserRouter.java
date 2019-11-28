@@ -25,20 +25,6 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 import static org.springframework.web.reactive.function.server.RequestPredicates.contentType;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
-/**
- * 시작전 : preference -> code style -> java -> Wrapping and braces -> chained method calls -> wrap always
- *
- * <a href="https://www.youtube.com/watch?v=M3jNn3HMeWg">참고하세욤!</a>
- * https://shortstories.gitbook.io/studybook/spring-webflux
- * 2가지 : RouterFunction (Webmvc requestMapping, filter) , HandlerFunction (request와 response 처리)
- * filter는 before, filter, after : similar functionality by using @ControllerAdvice, ServletFilter
- * route, nest, path, GET, RequestPredicate,  and, or, add(otherRoute)
- *
- * @author haekyu cho
- */
-//RouterFunction 을 여러 개 등록하면 가장 먼저 일치하는 HandlerFunction 을 실행하므로 .path("/**") ,
-// .path("/somePath")처럼 중첩된 범위를 가지는 RouterFunction 을 여러 개 등록한다면 반드시 좀 더 자세한 범위의 RouterFunction 을 먼저 등록해야 함.
-// /** 다음에 /somePath를 등록하게 되면 /somePath에 등록한 HandlerFunction 은 절대로 호출되지 않음.
 @Configuration
 public class UserRouter {
 
@@ -81,6 +67,7 @@ public class UserRouter {
 
       var handle = next.handle(request);
 
+      // kafkaProducerTemplate을 mock처리하기가 힘들어서 하드코딩 하였음 ㅜㅜ
       if (!kafkaProducerTemplate.getClass()
                                 .getSimpleName()
                                 .contains("mock")) {
@@ -103,14 +90,12 @@ public class UserRouter {
                                                     .getHostAddress());
 
       return kafkaProducerTemplate.send("webflux", requestLog)
-                                  .doOnNext(v -> log.info("[kafka producer] topic : [webflux], value : {}",
-                                                          requestLog.toString()))
+                                  .doOnNext(v -> log.info("[kafka producer] topic : [webflux], value : {}", requestLog))
                                   .map(v -> response);
     };
   }
 
   private void checkClientId(ServerRequest request) {
-    // 저희팀의 경우는 kotlin extensions를 이용하여
     boolean present = request.headers()
                              .header("clientId")
                              .stream()

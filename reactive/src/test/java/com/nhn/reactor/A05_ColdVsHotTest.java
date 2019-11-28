@@ -1,7 +1,6 @@
 package com.nhn.reactor;
 
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,30 +9,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.FileChannel;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.DirectProcessor;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.UnicastProcessor;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
-import reactor.util.function.Tuple2;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.in;
 
 /**
  * @author haekyu cho
@@ -103,7 +92,7 @@ class A05_ColdVsHotTest {
 
     sink.connect();
 
-    Thread.sleep(3000);
+    Thread.sleep(2500);
     final Flux<Integer> newFlux = Flux.range(1000, 10)
                                       .delayElements(Duration.ofMillis(500))
                                       .publishOn(Schedulers.newSingle("COLD FLUX"))
@@ -114,7 +103,7 @@ class A05_ColdVsHotTest {
 
     StepVerifier.create(merge)
                 .recordWith(ArrayList::new)
-                .expectNextCount(16)
+                .expectNextCount(17)
                 .consumeRecordedWith(v -> logger.info("총 카운트 : {}", v.size()))
                 .verifyComplete();
   }
@@ -124,6 +113,7 @@ class A05_ColdVsHotTest {
     return Arrays.stream(output.getOut()
                                .split("\n"))
                  .filter(v -> v.contains(": "))
+                 .filter(v -> v.contains("ColdVsHotTest"))
                  .map(v -> v.substring(v.lastIndexOf(":") + 2))
                  .collect(toList());
   }

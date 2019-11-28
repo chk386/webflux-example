@@ -19,8 +19,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
-import java.util.Observer;
-import java.util.concurrent.Flow;
 
 import reactor.core.publisher.Flux;
 
@@ -36,6 +34,7 @@ import static org.hamcrest.core.Is.is;
 @ExtendWith(OutputCaptureExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class A01_DualityTest {
+
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   private final List<Integer> integers = List.of(1, 2, 3, 4, 5);
 

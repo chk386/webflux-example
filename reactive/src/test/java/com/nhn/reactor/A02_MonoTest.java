@@ -22,7 +22,6 @@ import static org.hamcrest.Matchers.not;
 /**
  * @author haekyu cho
  */
-
 class A02_MonoTest {
 
   private Logger logger = LoggerFactory.getLogger(this.getClass());

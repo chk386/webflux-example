@@ -1,6 +1,6 @@
 spring:
   r2dbc:
-    url: r2dbc:pool:mysql://localhost:3306/webflux
+    url: r2dbc:pool:mysql://133.186.217.82:3306/webflux
     username: webflux
     password: webflux
     pool:

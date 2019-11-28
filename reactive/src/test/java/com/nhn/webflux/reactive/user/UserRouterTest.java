@@ -1,9 +1,14 @@
-package com.nhn.webflux.reactive.user.handler;
+package com.nhn.webflux.reactive.user;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.epages.restdocs.apispec.ResourceSnippetParametersBuilder;
+import com.nhn.webflux.reactive.team.repository.TeamRepository;
 import com.nhn.webflux.reactive.user.UserRouter;
+import com.nhn.webflux.reactive.user.handler.UserHandler;
+import com.nhn.webflux.reactive.user.handler.UserHandlerBlocking;
+import com.nhn.webflux.reactive.user.handler.UserHandlerRedis;
 import com.nhn.webflux.reactive.user.model.UserRequest;
+import com.nhn.webflux.reactive.user.model.UserResponse;
 import com.nhn.webflux.reactive.user.repository.UserRepository;
 
 import org.hamcrest.Matchers;
@@ -31,6 +36,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import java.time.Duration;
 
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 import reactor.kafka.sender.SenderResult;
 
 import static com.epages.restdocs.apispec.ResourceDocumentation.headerWithName;
@@ -54,12 +60,9 @@ import static org.springframework.restdocs.webtestclient.WebTestClientRestDocume
 
 @ExtendWith({RestDocumentationExtension.class})
 @WebFluxTest
-@ContextConfiguration(classes = {UserRouter.class, UserHandler.class})
+@ContextConfiguration(classes = {UserRouter.class, UserHandler.class, UserHandlerBlocking.class})
 @AutoConfigureRestDocs
-class UserHandlerTest {
-
-  @MockBean
-  UserHandlerBlocking userHandlerBlocking;
+class UserRouterTest {
 
   @MockBean
   UserHandlerRedis userHandlerRedis;
@@ -72,12 +75,14 @@ class UserHandlerTest {
 
   @MockBean
   UserRepository userRepository;
+  @MockBean
+  TeamRepository teamRepository;
 
   @Autowired
   private WebTestClient webTestClient;
   private ResourceSnippetParametersBuilder builder = ResourceSnippetParameters.builder();
 
-  private static final String CLIENT_ID = "clientId";
+  private static final String CLIENT_ID = "1clientId";
 
   @Test
   @DisplayName("유저를 조회한다.")
@@ -169,5 +174,31 @@ class UserHandlerTest {
       fieldWithPath("email").description("이메일").type(JsonFieldType.STRING),
       fieldWithPath("teamId").description("팀 ID").type(JsonFieldType.NUMBER)
     };
+  }
+
+  @Test
+  @DisplayName("DB에서 유저를 가져온다.")
+  void getUserBlockingTest() {
+    // @formatter:off
+    webTestClient.get()
+                 .uri("/users/blocking/{id}")
+                 .accept(APPLICATION_JSON)
+                 .header(CLIENT_ID, "webflux")
+                 .exchange()
+                 .expectStatus()
+                 .isCreated()
+                 .expectHeader()
+                 .contentType(APPLICATION_JSON)
+                 .expectBody(UserResponse.class)
+                 .consumeWith(document("create-user-blocking",
+                                       resource(builder.tag("[User]")
+                                                       .description("blocking 유저 조회")
+                                                       .requestHeaders(headerWithName(CONTENT_TYPE).description(APPLICATION_JSON_VALUE),
+                                                                       headerWithName(CLIENT_ID).description("클라이언트 ID").optional())
+                                                       .requestFields(userField())
+                                                       .responseHeaders(headerWithName(CONTENT_TYPE).description(APPLICATION_JSON_VALUE),
+                                                                        headerWithName(LOCATION).description("회원 조회 uri"))
+                                                       .responseFields(userField())
+                                                       .build())));
   }
 }

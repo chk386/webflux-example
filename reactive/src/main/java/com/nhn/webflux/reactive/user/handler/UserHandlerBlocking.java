@@ -77,7 +77,7 @@ public class UserHandlerBlocking {
     return user;
   }
 
-  static UserResponse toUserResponse(User user) {
+  private static UserResponse toUserResponse(User user) {
     return new UserResponse(user.getId(),
                             user.getName(),
                             user.getEmail(),

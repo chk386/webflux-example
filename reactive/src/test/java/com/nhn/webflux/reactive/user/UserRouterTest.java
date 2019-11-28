@@ -148,12 +148,9 @@ class UserRouterTest {
                  .header(CLIENT_ID, "webflux")
                  .bodyValue(user)
                  .exchange()
-                 .expectStatus()
-                 .isCreated()
-                 .expectHeader()
-                 .contentType(APPLICATION_JSON)
-                 .expectHeader()
-                 .value(LOCATION, Matchers.containsString("users"))
+                 .expectStatus().isCreated()
+                 .expectHeader().contentType(APPLICATION_JSON)
+                 .expectHeader().value(LOCATION, Matchers.containsString("users"))
                  .expectBody()
                  .consumeWith(document("create-user",
                                        resource(builder.tag("[User]")
@@ -165,6 +162,7 @@ class UserRouterTest {
                                                                         headerWithName(LOCATION).description("회원 조회 uri"))
                                                        .responseFields(userField())
                                                        .build())));
+    // @formatter:on
   }
 
   @Test

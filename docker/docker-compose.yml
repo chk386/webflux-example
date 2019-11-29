@@ -14,7 +14,7 @@ services:
       - MYSQL_PASSWORD=webflux
       - MYSQL_DATABASE=webflux
     volumes:
-      - ~/docker/mysql:/var/lib/mysql
+      - ./docker/mysql:/var/lib/mysql
   adminer:
     container_name: adminer # mysql web client
     image: adminer
@@ -76,16 +76,21 @@ services:
       - ME_CONFIG_MONGODB_AUTH_DATABASE=webflux
     ports:
       - 8083:8081
+#  zookeeper:
+        #    container_name: zookeeper
+        #    hostname: zookeeper
+        #    image: confluentinc/cp-zookeeper:5.0.1
+        #    ports:
+        #      - 2181:2181
+        #    environment:
+      #      ZOOKEEPER_CLIENT_PORT: 2181
+      #      ZOOKEEPER_TICK_TIME: 2000
   zookeeper:
     container_name: zookeeper
     hostname: zookeeper
-    image: confluentinc/cp-zookeeper:5.0.1
+    image: wurstmeister/zookeeper
     ports:
-      - 2181:2181
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-
+      - "2181:2181"
   kafka:
     # -----------------------------------------------------------------------------
     # For connections _internal_ to the docker network, such as from other services
@@ -105,22 +110,26 @@ services:
     # kafka-console-consumer --bootstrap-server localhost:9092 --topic webflux
     container_name: kafka
     hostname: kafka
-    image: confluentinc/cp-kafka:5.0.1
-    depends_on:
-      - zookeeper
     ports:
       - 9092:9092
     environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_CREATE_TOPICS: webflux:1:1
-      CONNECT_GROUP_ID: webflux
       KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_CREATE_TOPICS: "webflux:1:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  #    image: confluentinc/cp-kafka:5.0.1
+#    depends_on:
+#      - zookeeper
+
+#    environment:
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_CREATE_TOPICS: webflux:1:1
+#      CONNECT_GROUP_ID: webflux
 
 #      ZOOKEEPER_SERVERS: zookeeper:2181
   zoonavigator:

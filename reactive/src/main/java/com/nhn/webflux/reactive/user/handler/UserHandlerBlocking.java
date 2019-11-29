@@ -35,7 +35,7 @@ public class UserHandlerBlocking {
   }
 
   public Mono<ServerResponse> createUser(ServerRequest request) {
-    return request.bodyToMono(UserRequest.class)
+    return request.bodyToMoNo(UserRequest.class)
                   .doOnNext(userRequest -> {
                     if (userRequest.getId() != 0) {
                       throw new ServerWebInputException("id는 0이여야 합니다.");

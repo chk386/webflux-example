@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.reactivestreams.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestConstructor;
@@ -37,7 +35,6 @@ import static org.hamcrest.Matchers.iterableWithSize;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UserMongoReactiveRepositoryTest {
 
-  private Logger logger = LoggerFactory.getLogger(this.getClass());
   private final UserMongoReactiveRepository userMongoReactiveRepository;
 
   public UserMongoReactiveRepositoryTest(UserMongoReactiveRepository userMongoReactiveRepository) {

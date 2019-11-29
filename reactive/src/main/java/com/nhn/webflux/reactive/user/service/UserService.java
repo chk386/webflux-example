@@ -2,7 +2,6 @@ package com.nhn.webflux.reactive.user.service;
 
 import com.nhn.webflux.reactive.team.repository.TeamRepository;
 import com.nhn.webflux.reactive.user.entity.User;
-import com.nhn.webflux.reactive.user.handler.UserHandlerBlocking;
 import com.nhn.webflux.reactive.user.model.UserRequest;
 import com.nhn.webflux.reactive.user.model.UserResponse;
 import com.nhn.webflux.reactive.user.repository.UserRepository;
@@ -10,11 +9,9 @@ import com.nhn.webflux.reactive.user.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.function.Function;
-
-import javax.transaction.Transactional;
 
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;

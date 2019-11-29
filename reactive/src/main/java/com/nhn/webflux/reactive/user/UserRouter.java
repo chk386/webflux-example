@@ -55,9 +55,9 @@ public class UserRouter {
                   .path("/users/redis",
                         b1 -> b1.GET("/{id}", userHandlerRedis::getUser)
                                 .POST("/", userHandlerRedis::createUser))
-                  .before(request -> request)
-                  .filter(clientFilterFunction())
-                  .after((request, response) -> response)
+//                  .before(request -> request)
+//                  .filter(clientFilterFunction())
+//                  .after((request, response) -> response)
                   .build();
   }
 
@@ -65,17 +65,8 @@ public class UserRouter {
     return (request, next) -> {
       checkClientId(request);
 
-      var handle = next.handle(request);
-
-      // kafkaProducerTemplate을 mock처리하기가 힘들어서 하드코딩 하였음 ㅜㅜ
-      if (!kafkaProducerTemplate.getClass()
-                                .getSimpleName()
-                                .contains("mock")) {
-
-        handle.flatMap(produce(request));
-      }
-
-      return handle;
+      return next.handle(request)
+        .flatMap(produce(request));
     };
   }
 

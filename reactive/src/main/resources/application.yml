@@ -15,7 +15,7 @@ spring:
       maximum-pool-size: 2
       pool-name: [webflux]
       validation-timeout: 5000
-    url: jdbc:mysql://localhost:3306/webflux
+    url: jdbc:mysql://133.186.217.82:3306/webflux
     username: webflux
     password: webflux
     data: classpath:data-mysql.sql
@@ -23,7 +23,7 @@ spring:
     initialization-mode: always
     driver-class-name: com.mysql.cj.jdbc.Driver
   redis:
-    host: localhost
+    host: 133.186.217.82
     port: 6379
   http:
     log-request-details: true
@@ -31,13 +31,13 @@ spring:
     mongodb:
       username: webflux
       password: webflux
-      host: localhost
+      host: 133.186.217.82
       port: 27017
       database: webflux
   kafka:
     consumer:
       group-id: webflux
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: 10.162.5.97:9092,10.162.5.97:9093,10.162.5.97:9094
       auto-commit-interval: 1000
       auto-offset-reset: latest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -52,7 +52,7 @@ spring:
               packages: com.nhn.mongo
 
     producer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: 10.162.5.97:9092,10.162.5.97:9093,10.162.5.97:9094
       acks: all
       retries: 0
       batch-size: 20000
@@ -94,6 +94,7 @@ logging:
     com.zaxxer.hikari: ERROR
 
     org.springframework.data: DEBUG
+    org.springframework.kafka: DEBUG
     io.lettuce.core.protocol.CommandEncoder: TRACE
 
     reactor.Mono: INFO

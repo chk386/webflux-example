@@ -6,7 +6,6 @@ import com.nhn.mongo.RequestLogMongoReactiveRepository;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,14 +13,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.reactive.ReactiveKafkaConsumerTemplate;
 import org.springframework.kafka.core.reactive.ReactiveKafkaProducerTemplate;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import reactor.kafka.receiver.ReceiverOptions;
 import reactor.kafka.sender.SenderOptions;
 
-import static java.time.Duration.*;
+import static java.time.Duration.ofSeconds;
 
 /**
  * @author haekyu cho
@@ -52,7 +50,8 @@ public class KafkaConfiguration {
   }
 
   @Bean
-  ApplicationRunner run(ReactiveKafkaConsumerTemplate<String, Object> kafkaReceiver, RequestLogMongoReactiveRepository requestLogMongoReactiveRepository) {
+  ApplicationRunner run(ReactiveKafkaConsumerTemplate<String, Object> kafkaReceiver,
+                        RequestLogMongoReactiveRepository requestLogMongoReactiveRepository) {
     return args -> {
       kafkaReceiver.receive()
                    .doOnNext(r -> logger.info("[kafka consumer] topic : [{}], key : {}, value : {}",
@@ -67,14 +66,10 @@ public class KafkaConfiguration {
                                                       .collect(Collectors.toList());
 
                      return requestLogMongoReactiveRepository.saveAll(requestLogs)
-                                                             .doOnComplete(() -> {
-                                                               receiverRecords.forEach(v -> v.receiverOffset()
-                                                                                             .acknowledge());
-                                                             });
+                                                             .doOnComplete(() -> receiverRecords.forEach(v -> v.receiverOffset()
+                                                                                                               .acknowledge()));
                    })
-                   .doOnSubscribe(v -> {
-                     logger.info("webflux 토픽 구독을 시작합니다.");
-                   })
+                   .doOnSubscribe(v -> logger.info("webflux 토픽 구독을 시작합니다."))
                    .subscribe();
     };
   }

@@ -77,77 +77,53 @@ services:
     ports:
       - 8083:8081
 #  zookeeper:
-        #    container_name: zookeeper
-        #    hostname: zookeeper
-        #    image: confluentinc/cp-zookeeper:5.0.1
-        #    ports:
-        #      - 2181:2181
-        #    environment:
-      #      ZOOKEEPER_CLIENT_PORT: 2181
-      #      ZOOKEEPER_TICK_TIME: 2000
-  zookeeper:
-    container_name: zookeeper
-    hostname: zookeeper
-    image: wurstmeister/zookeeper
-    ports:
-      - "2181:2181"
-  kafka:
-    # -----------------------------------------------------------------------------
-    # For connections _internal_ to the docker network, such as from other services
-    # and components, use kafka:29092.
-    #
-    # See https://rmoff.net/2018/08/02/kafka-listeners-explained/ for details
-    # -----------------------------------------------------------------------------
-
-    # create topic
-    # docker run --net=host --rm confluentinc/cp-kafka:5.0.1 kafka-topics --create --topic webflux --partitions 1 --replication-factor 1 --if-not-exists --zookeeper localhost:2181
-
-    # producer
-    # docker exec -it kafka /bin/sh
-    # kafka-console-producer --broker-list localhost:9092 --topic webflux --property parse.key=true --property key.seperator=,
-
-    # consumer
-    # kafka-console-consumer --bootstrap-server localhost:9092 --topic webflux
-    container_name: kafka
-    hostname: kafka
-    ports:
-      - 9092:9092
-    image: wurstmeister/kafka
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
-      KAFKA_CREATE_TOPICS: "webflux:1:1"
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-
-  #    image: confluentinc/cp-kafka:5.0.1
+#    container_name: zookeeper
+#    hostname: zookeeper
+#    image: wurstmeister/zookeeper
+#    ports:
+#      - "2181:2181"
+#
+#    # -----------------------------------------------------------------------------
+#    # For connections _internal_ to the docker network, such as from other services
+#    # and components, use kafka:29092.
+#    #
+#    # See https://rmoff.net/2018/08/02/kafka-listeners-explained/ for details
+#    # -----------------------------------------------------------------------------
+#
+#    # create topic
+#    # docker run --net=host --rm confluentinc/cp-kafka:5.0.1 kafka-topics --create --topic webflux --partitions 1 --replication-factor 1 --if-not-exists --zookeeper zookeeper:2181
+#
+#    # producer
+#    # docker exec -it kafka /bin/sh
+#    # kafka-console-producer --broker-list localhost:9092 --topic webflux --property parse.key=true --property key.seperator=,
+#
+#    # consumer
+#    # kafka-console-consumer --bootstrap-server localhost:9092 --topic webflux
+#  kafka:
+#    container_name: kafka
+#    hostname: kafka
+#    ports:
+#      - 9092:9092
+#    image: wurstmeister/kafka
+#    environment:
+#      KAFKA_ADVERTISED_HOST_NAME: localhost
+#      KAFKA_CREATE_TOPICS: "webflux:1:1"
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#  zoonavigator:
+#    container_name: zoonavigator
+#    hostname: zoonavigator
+#    image: elkozmon/zoonavigator:latest
 #    depends_on:
 #      - zookeeper
-
+#    ports:
+#      - 8084:9000
+#  kafka-manager:
+#    container_name: kafka-manager
+#    hostname: kafka-manager
+#    image: kafkamanager/kafka-manager:latest
+#    depends_on:
+#      - kafka
 #    environment:
-#      KAFKA_BROKER_ID: 1
-#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://kafka:9092
-#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-#      KAFKA_CREATE_TOPICS: webflux:1:1
-#      CONNECT_GROUP_ID: webflux
-
-#      ZOOKEEPER_SERVERS: zookeeper:2181
-  zoonavigator:
-    container_name: zoonavigator
-    hostname: zoonavigator
-    image: elkozmon/zoonavigator:latest
-    depends_on:
-      - zookeeper
-    ports:
-      - 8084:9000
-  kafka-manager:
-    container_name: kafka-manager
-    hostname: kafka-manager
-    image: kafkamanager/kafka-manager:latest
-    depends_on:
-      - kafka
-    environment:
-      - ZK_HOSTS=zookeeper:2181
-    ports:
-      - 8085:9000
+#      - ZK_HOSTS=zookeeper:2181
+#    ports:
+#      - 8085:9000

@@ -34,7 +34,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.time.Duration;
-import java.util.List;
 
 import reactor.core.publisher.Mono;
 
@@ -81,6 +80,8 @@ class UserRouterTest {
 
   @Autowired
   private WebTestClient webTestClient;
+  @Autowired
+  private UserRouter userRouter;
   private ResourceSnippetParametersBuilder builder = ResourceSnippetParameters.builder();
 
   private static final String CLIENT_ID = "clientId";
@@ -118,7 +119,6 @@ class UserRouterTest {
   @DisplayName("유저 대량 등록")
   void bulkUser() {
     Resource resource = new ClassPathResource("sample.txt");
-
     // @formatter:off
     webTestClient.mutate()
                  .responseTimeout(Duration.ofMinutes(5))
@@ -129,12 +129,17 @@ class UserRouterTest {
                  .header(CLIENT_ID, "webflux")
                  .body(BodyInserters.fromMultipartData("sample.txt", resource))
                  .exchange()
-                 .expectStatus()
-                 .isOk()
-                 .expectHeader()
-                 .valueEquals(CONTENT_TYPE, TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8")
+                 .expectStatus().isOk()
+                 .expectHeader().valueEquals(CONTENT_TYPE, TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8")
                  .expectBody()
-                 .consumeWith(document("bulk-user",requestParts(partWithName(resource.getFilename()).description("The file to upload"))));
+                 .consumeWith(
+                   document("bulk-user",
+                            requestParts(
+                              partWithName(resource.getFilename()).description("The file to upload")
+                            )
+                   )
+                 );
+    // @formatter:on
   }
 
   @Test

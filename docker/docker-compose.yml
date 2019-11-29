@@ -98,6 +98,7 @@ services:
     # docker run --net=host --rm confluentinc/cp-kafka:5.0.1 kafka-topics --create --topic webflux --partitions 1 --replication-factor 1 --if-not-exists --zookeeper localhost:2181
 
     # producer
+    # docker exec -it kafka /bin/sh
     # kafka-console-producer --broker-list localhost:9092 --topic webflux --property parse.key=true --property key.seperator=,
 
     # consumer
@@ -118,6 +119,9 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_CREATE_TOPICS: webflux:1:1
       CONNECT_GROUP_ID: webflux
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_PORT: 9092
+
 #      ZOOKEEPER_SERVERS: zookeeper:2181
   zoonavigator:
     container_name: zoonavigator

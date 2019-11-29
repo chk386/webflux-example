@@ -55,13 +55,10 @@ public class KafkaConfiguration {
   ApplicationRunner run(ReactiveKafkaConsumerTemplate<String, Object> kafkaReceiver, RequestLogMongoReactiveRepository requestLogMongoReactiveRepository) {
     return args -> {
       kafkaReceiver.receive()
-                   //                   .log()
                    .doOnNext(r -> logger.info("[kafka consumer] topic : [{}], key : {}, value : {}",
                                               r.topic(),
                                               r.key(),
                                               r.value()))
-                   //                   .doOnNext(r -> r.receiverOffset()
-                   //                                   .acknowledge())
                    .bufferTimeout(5, ofSeconds(5))
                    .flatMap(receiverRecords -> {
                      var requestLogs = receiverRecords.stream()

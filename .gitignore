@@ -8,7 +8,9 @@ gradlew.bat
 .DS_Store
 build/
 docker/mongodb
-mongodb
+mongodb/
+docker/mysql
+mysql/
 
 # Log file
 *.log

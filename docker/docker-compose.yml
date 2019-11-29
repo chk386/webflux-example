@@ -14,7 +14,7 @@ services:
       - MYSQL_PASSWORD=webflux
       - MYSQL_DATABASE=webflux
     volumes:
-      - ./docker/mysql:/var/lib/mysql
+      - ./mysql:/var/lib/mysql
   adminer:
     container_name: adminer # mysql web client
     image: adminer

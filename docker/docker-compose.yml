@@ -112,8 +112,9 @@ services:
     hostname: kafka
     ports:
       - 9092:9092
+    image: wurstmeister/kafka
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
       KAFKA_CREATE_TOPICS: "webflux:1:1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
 

@@ -41,7 +41,6 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.kafka:spring-kafka")
   implementation("io.projectreactor.kafka:reactor-kafka")
-  implementation("io.projectreactor.netty:reactor-netty")
 
   runtimeOnly("mysql:mysql-connector-java")
   testImplementation("org.springframework.boot:spring-boot-starter-test") {

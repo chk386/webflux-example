@@ -1,3 +1,3 @@
 rootProject.name = "webflux"
-include("reactive", "reactive-r2dbc")
+include("reactive", "reactive-r2dbc", "reactive-practice")
 

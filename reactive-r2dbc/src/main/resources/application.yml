@@ -13,7 +13,7 @@ logging:
   level:
     com.nhn: DEBUG
     org.springframework: INFO
-    org.springframework.data.r2dbc.core: DEBUG
+    org.springframework.data.r2dbc: DEBUG
     org.springframework.transaction.interceptor: TRACE
 #    org.springframework.data.r2dbc.connectionfactory: DEBUG
 #    com.github.jasync: DEBUG

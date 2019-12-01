@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
@@ -124,5 +125,10 @@ public class A03_FluxTest {
                   }
                 })
                 .verifyComplete();
+  }
+
+
+  public <T> Flux<T> appendBoomError(Flux<T> source) {
+    return source.concatWith(Mono.error(new IllegalArgumentException("boom")));
   }
 }

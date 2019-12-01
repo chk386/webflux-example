@@ -24,10 +24,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 
-/**
- * @author haekyu cho
- */
-
 @ExtendWith(OutputCaptureExtension.class)
 class A05_ColdVsHotTest {
 

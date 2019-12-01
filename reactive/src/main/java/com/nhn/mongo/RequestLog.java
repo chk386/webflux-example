@@ -1,13 +1,8 @@
 package com.nhn.mongo;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-/**
- * @author haekyu cho
- */
 @Document
 public class RequestLog {
 

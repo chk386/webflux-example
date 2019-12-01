@@ -4,10 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
-/**
- * @author haekyu cho
- */
-
 @Entity
 public class Company {
   @Id

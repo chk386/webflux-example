@@ -7,10 +7,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-/**
- * @author haekyu cho
- */
-
 @Configuration
 public class AddressRouter {
 

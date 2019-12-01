@@ -12,10 +12,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import io.lettuce.core.RedisCommandExecutionException;
 import reactor.core.publisher.Mono;
 
-/**
- * @author haekyu cho
- */
-
 @Component
 public class UserHandlerRedis {
 

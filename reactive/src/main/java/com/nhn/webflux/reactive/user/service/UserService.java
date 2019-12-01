@@ -16,10 +16,6 @@ import java.util.function.Function;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-/**
- * @author haekyu cho
- */
-
 @Component
 public class UserService {
 

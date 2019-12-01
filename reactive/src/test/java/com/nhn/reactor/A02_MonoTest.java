@@ -28,9 +28,6 @@ import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author haekyu cho
- */
 class A02_MonoTest {
 
   private Logger logger = LoggerFactory.getLogger(this.getClass());

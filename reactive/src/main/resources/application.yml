@@ -73,9 +73,8 @@ logging:
     root: WARN
     com.nhn: DEBUG
     org.springframework: WARN
-    org.springframework.beans.factory.support.DefaultListableBeanFactory: DEBUG
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: WARN
     org.springframework.web.server.adapter.HttpWebHandlerAdapter: TRACE
-    org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
     org.springframework.web.reactive.function: TRACE
 
     org.hibernate.SQL: DEBUG

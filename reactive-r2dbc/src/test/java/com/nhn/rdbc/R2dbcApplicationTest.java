@@ -12,10 +12,6 @@ import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author haekyu cho
- */
-//@DataR2dbcTest
 @SpringBootTest
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class R2dbcApplicationTest {

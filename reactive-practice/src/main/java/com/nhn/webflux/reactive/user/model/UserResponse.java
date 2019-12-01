@@ -1,9 +1,5 @@
 package com.nhn.webflux.reactive.user.model;
 
-/**
- * @author haekyu cho
- */
-
 public class UserResponse {
   private final long id;
   private final String name;

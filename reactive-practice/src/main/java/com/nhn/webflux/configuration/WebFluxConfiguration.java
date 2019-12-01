@@ -14,10 +14,6 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * @author haekyu cho
- */
-
 @Configuration
 @EnableWebFlux
 public class WebFluxConfiguration implements WebFluxConfigurer {

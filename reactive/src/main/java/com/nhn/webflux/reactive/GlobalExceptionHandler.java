@@ -21,10 +21,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author haekyu cho
- */
-
 @Component
 @Order(-2) //DefaultErrorWebExceptionHandler order
 public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {

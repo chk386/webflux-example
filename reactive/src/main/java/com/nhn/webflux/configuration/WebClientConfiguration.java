@@ -11,9 +11,6 @@ import reactor.netty.http.client.HttpClient;
 
 import static io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS;
 
-/**
- * @author haekyu.cho@nhnent.com
- */
 @Configuration
 public class WebClientConfiguration {
 

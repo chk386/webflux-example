@@ -13,10 +13,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
-/**
- * @author haekyu cho
- */
-
 @Entity
 @Document
 public class User implements Serializable {

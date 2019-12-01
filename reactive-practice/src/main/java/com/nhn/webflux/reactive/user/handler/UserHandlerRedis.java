@@ -9,12 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import io.lettuce.core.RedisCommandExecutionException;
 import reactor.core.publisher.Mono;
-
-/**
- * @author haekyu cho
- */
 
 @Component
 public class UserHandlerRedis {
@@ -34,7 +29,7 @@ public class UserHandlerRedis {
 
   public Mono<ServerResponse> getUser(ServerRequest request) {
     // todo : id가 캐쉬에 있으면 바로 리턴, 없으면 db에서 조회 후 캐쉬에 저장return ServerResponse.ok()
-     return null;
+    return null;
   }
 
   private User toUser(UserRequest userRequest) {

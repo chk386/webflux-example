@@ -21,10 +21,6 @@ import reactor.kafka.sender.SenderOptions;
 
 import static java.time.Duration.ofSeconds;
 
-/**
- * @author haekyu cho
- */
-
 @Configuration
 public class KafkaConfiguration {
 

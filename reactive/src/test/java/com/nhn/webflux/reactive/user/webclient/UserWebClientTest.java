@@ -21,9 +21,6 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
-/**
- * @author haekyu cho
- */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class UserWebClientTest {

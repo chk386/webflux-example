@@ -10,10 +10,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 
-/**
- * @author haekyu cho
- */
-
 @Entity
 public class Team implements Serializable {
   @Id

@@ -28,9 +28,6 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.core.Is.is;
 
-/**
- * @author haekyu cho
- */
 @ExtendWith(OutputCaptureExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class A01_DualityTest {

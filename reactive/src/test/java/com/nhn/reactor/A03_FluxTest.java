@@ -17,10 +17,6 @@ import reactor.test.StepVerifier;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author haekyu cho
- */
-
 public class A03_FluxTest {
 
   private final Logger logger = LoggerFactory.getLogger(this.getClass());

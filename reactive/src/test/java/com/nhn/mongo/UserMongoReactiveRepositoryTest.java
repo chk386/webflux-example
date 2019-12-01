@@ -26,9 +26,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.iterableWithSize;
 
-/**
- * @author haekyu cho
- */
 @DataMongoTest
 @ContextConfiguration(classes = {MongoConfiguration.class})
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)

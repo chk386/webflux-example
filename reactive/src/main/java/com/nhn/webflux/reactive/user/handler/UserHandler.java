@@ -27,9 +27,6 @@ import reactor.core.publisher.Mono;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM;
 
-/**
- * @author haekyu cho
- */
 @Component
 public class UserHandler {
 

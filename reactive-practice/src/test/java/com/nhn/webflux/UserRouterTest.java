@@ -1,8 +1,9 @@
-package com.nhn.webflux.reactive.user;
+package com.nhn.webflux;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.epages.restdocs.apispec.ResourceSnippetParametersBuilder;
 import com.nhn.webflux.reactive.team.repository.TeamRepository;
+import com.nhn.webflux.reactive.user.UserRouter;
 import com.nhn.webflux.reactive.user.handler.UserHandler;
 import com.nhn.webflux.reactive.user.handler.UserHandlerBlocking;
 import com.nhn.webflux.reactive.user.handler.UserHandlerRedis;

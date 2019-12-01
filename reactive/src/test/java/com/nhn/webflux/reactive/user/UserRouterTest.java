@@ -80,8 +80,6 @@ class UserRouterTest {
 
   @Autowired
   private WebTestClient webTestClient;
-  @Autowired
-  private UserRouter userRouter;
   private ResourceSnippetParametersBuilder builder = ResourceSnippetParameters.builder();
 
   private static final String CLIENT_ID = "clientId";

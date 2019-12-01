@@ -27,23 +27,14 @@ public class UserHandlerRedis {
     this.userRepository = userRepository;
   }
 
-  public Mono<ServerResponse> getUser(ServerRequest request) {
-    var id = request.pathVariable("id");
-    var mono = template.opsForValue()
-                       .get(id)
-                       .switchIfEmpty(Mono.fromCallable(() -> userRepository.findById(Long.parseLong(id))
-                                                                            .orElseThrow(Exception::new))
-                                          .flatMap(this::setUserToCache));
-
-    return ServerResponse.ok()
-                         .body(mono, User.class);
+  public Mono<ServerResponse> createUser(ServerRequest request) {
+    // todo: UserRequest를 body로 받아서 User로 변환한 후 cache에 저장, response body는 user를 반환
+    return null;
   }
 
-  public Mono<ServerResponse> createUser(ServerRequest request) {
-    return request.bodyToMono(UserRequest.class)
-                  .map(this::toUser)
-                  .flatMap(user -> ServerResponse.ok()
-                                                 .body(setUserToCache(user), User.class));
+  public Mono<ServerResponse> getUser(ServerRequest request) {
+    // todo : id가 캐쉬에 있으면 바로 리턴, 없으면 db에서 조회 후 캐쉬에 저장return ServerResponse.ok()
+     return null;
   }
 
   private User toUser(UserRequest userRequest) {
@@ -53,17 +44,5 @@ public class UserHandlerRedis {
     user.setEmail(userRequest.getEmail());
 
     return user;
-  }
-
-  private Mono<User> setUserToCache(User user) {
-    return template.opsForValue()
-                   .set(String.valueOf(user.getId()), user)
-                   .map(result -> {
-                     if (!result) {
-                       throw new RedisCommandExecutionException("redis set command error");
-                     }
-
-                     return user;
-                   });
   }
 }

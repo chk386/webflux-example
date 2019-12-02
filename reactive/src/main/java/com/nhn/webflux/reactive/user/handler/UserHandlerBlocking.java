@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import org.springframework.web.server.ServerWebInputException;
 
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 /**
  * <a href="https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking">wrap blocking</a>
@@ -41,6 +42,8 @@ public class UserHandlerBlocking {
                   })
                   // Mono<UserRequest> -> Mono<ServerResponse>
                   .flatMap(userRequest -> ServerResponse.ok()
-                                                        .body(userService.save(userRequest), User.class));
+                                                        .body(Mono.fromCallable(() -> userService.save(userRequest))
+                                                                  .subscribeOn(Schedulers.boundedElastic()),
+                                                              User.class));
   }
 }

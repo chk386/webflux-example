@@ -13,7 +13,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
@@ -54,9 +53,9 @@ class A04_BackpressureTest {
 
             logger.info("integer: {},  active thread count : {}", integer, threadActiveCount);
 
-            if(threadActiveCount < 10) {
+            if (threadActiveCount < 10) {
               this.subscription.request(1);
-            }else {
+            } else {
               this.subscription.cancel();
             }
 

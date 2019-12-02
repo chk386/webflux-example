@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Observable;
+import java.util.Observer;
 
 import reactor.core.publisher.Flux;
 
@@ -42,7 +43,7 @@ class A01_DualityTest {
     for (Iterator<Integer> it = integers.iterator(); it.hasNext(); ) {
       Integer integer = it.next();
 
-      logger.info("Iterable Pattern : {}", integer.toString());
+      logger.info("Iterable Pattern : {}", integer);
     }
 
     assertThat("1,2,3,4,5가 출력되어야 한다.", captureOutput(output), everyItem(is(in(integers))));
@@ -54,7 +55,7 @@ class A01_DualityTest {
   @SuppressWarnings("deprecation")
   void observableTest(CapturedOutput output) {
     ExamObservable observable = new ExamObservable();
-    observable.addObserver((o, arg) -> logger.info("Observable Pattern : {}", arg.toString()));
+    observable.addObserver((o, arg) -> logger.info("Observable Pattern : {}", arg));
 
     observable.push(integers);
 

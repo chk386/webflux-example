@@ -40,13 +40,11 @@ class A02_MonoTest {
         .map(Integer::parseInt)
         .doOnNext(v -> logger.info("data type is {}", v.getClass()))
         .doOnSubscribe(s -> logger.info("최초 한번 실행"))
-        .subscribe(v -> assertThat("숫자 1로 변환", v, equalTo(1)), e -> {}, () -> {
-          logger.info("완료");
-        });
+        .subscribe(v -> assertThat("숫자 1로 변환", v, equalTo(1)), e -> {}, () -> logger.info("완료"));
   }
 
   @Test
-  @DisplayName("subscriber가 데이터를 처리중 에러 발생시 테스트")
+  @DisplayName("데이터를 처리중 에러 발생시 테스트")
   void monoError1() {
     var notNum = "A";
 
@@ -58,7 +56,7 @@ class A02_MonoTest {
   }
 
   @Test
-  @DisplayName("subscriber가 데이터를 처리중 에러 발생시 테스트")
+  @DisplayName("데이터를 처리중 에러 발생시 테스트")
   void monoError2() {
     Mono.error(NumberFormatException::new)
         .log()
@@ -71,6 +69,7 @@ class A02_MonoTest {
   void monoDelay() {
     var fluxFromMono = Mono.just("hello\nwebflux")
                            .log()
+                           // mono -> flux
                            .flatMapMany(s -> Flux.fromStream(Arrays.stream(s.split("\n")))
                                                  .log()
                                                  .delayElements(Duration.ofMillis(1000)));

@@ -56,7 +56,7 @@ public class UserRouter {
                         b1 -> b1.GET("/{id}", userHandlerRedis::getUser)
                                 .POST("/", userHandlerRedis::createUser))
 //                  .before(request -> request)
-//                  .filter(clientFilterFunction())
+                  .filter(clientFilterFunction())
 //                  .after((request, response) -> response)
                   .build();
   }

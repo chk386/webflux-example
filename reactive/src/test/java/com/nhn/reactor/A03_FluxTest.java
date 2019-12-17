@@ -98,8 +98,8 @@ public class A03_FluxTest {
                              .publishOn(Schedulers.newSingle("AAAA"))
                              .groupBy(v -> v)
                              .log()
+                             // Flux<GroupedFlux> -> Fu
                              .map(v -> "flux1 [data:" + v.key() + ", count:" + v.count() + "]");
-
     Flux<String> flux2 = Flux.range(100, 10)
                              .delayElements(Duration.ofMillis(500))
                              .publishOn(Schedulers.newSingle("BBBB"))

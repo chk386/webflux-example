@@ -46,6 +46,7 @@ public class WebSocketConfiguration {
 
   private WebSocketHandler echoHandler() {
     return session -> {
+
       var output = session.receive()
                           .map(message -> {
                             var payloadAsText = message.getPayloadAsText();
@@ -55,6 +56,7 @@ public class WebSocketConfiguration {
                           });
 
       return session.send(output);
+
     };
   }
 

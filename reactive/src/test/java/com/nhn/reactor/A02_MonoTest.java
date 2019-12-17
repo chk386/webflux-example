@@ -37,6 +37,7 @@ class A02_MonoTest {
         .log()
         .subscribeOn(Schedulers.newSingle("mono"))
         .doOnNext(v -> logger.info("data type is {}", v.getClass()))
+        // Mono<String> -> Mono<Integer>
         .map(Integer::parseInt)
         .doOnNext(v -> logger.info("data type is {}", v.getClass()))
         .doOnSubscribe(s -> logger.info("최초 한번 실행"))
@@ -73,6 +74,7 @@ class A02_MonoTest {
                            .flatMapMany(s -> Flux.fromStream(Arrays.stream(s.split("\n")))
                                                  .log()
                                                  .delayElements(Duration.ofMillis(1000)));
+
 
     StepVerifier.create(fluxFromMono)
                 .expectNext("hello")

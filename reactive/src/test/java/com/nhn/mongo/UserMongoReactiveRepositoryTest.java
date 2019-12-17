@@ -43,7 +43,6 @@ class UserMongoReactiveRepositoryTest {
   @DisplayName("mongoDB 등록 테스트")
   void createUserTest() {
     var input = Flux.range(800827, 100)
-                    .delayElements(Duration.ofMillis(1))
                     .map(index -> {
                       User user = new User();
                       user.setId(Integer.toUnsignedLong(index));

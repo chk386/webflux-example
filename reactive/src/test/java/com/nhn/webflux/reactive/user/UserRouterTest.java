@@ -205,7 +205,7 @@ class UserRouterTest {
     user.setEmail("nhn");
     user.setTeam(new Team());
 
-    given(userService.save(any(UserRequest.class))).willReturn(Mono.just(user));
+    given(userService.save(any(UserRequest.class))).willReturn(user);
 
     // @formatter:off
     webTestClient.post()

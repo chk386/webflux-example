@@ -37,10 +37,8 @@ public class UserService {
   }
 
   @Transactional
-  public Mono<User> save(UserRequest userRequest) {
-    return Mono.fromCallable(() -> userRepository.saveAndFlush(toUser(userRequest)))
-               .doOnError(e -> logger.error("DB 저장 실패", e))
-               .subscribeOn(Schedulers.boundedElastic());
+  public User save(UserRequest userRequest) {
+    return userRepository.save(toUser(userRequest));
   }
 
   private User toUser(UserRequest userRequest) {

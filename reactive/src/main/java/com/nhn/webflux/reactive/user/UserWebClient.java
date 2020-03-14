@@ -85,6 +85,7 @@ public class UserWebClient {
   }
 
   public Mono<UserRequest> createUserByRetrieve(String baseUrl, String name) {
+
     return WebClient.create(baseUrl)
                     .post()
                     .uri("/users")
